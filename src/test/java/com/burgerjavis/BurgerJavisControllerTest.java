@@ -694,10 +694,70 @@ public class BurgerJavisControllerTest {
 		
 	}
 
-	@Ignore
 	@Test
-	public void testModifyCategory() {
-		fail("Not yet implemented");
+	public void testModifyCategory() throws Exception {
+		//Initialize database
+		Category c1 = new Category("Burgers", "burger", false);
+		Category c2 = new Category("Sandwiches", "sandwich", true);
+		c1 = categoryRepository.save(c1);
+		c2 = categoryRepository.save(c2);
+		
+		// Modify c1
+		Category modifiedCategory1 = new Category(c1);
+		modifiedCategory1.setIcon("otherIcon");
+		modifiedCategory1.setFavorite(true);
+		
+		mockMvc.perform(put("/categories/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1)))
+			.andExpect(status().isNotFound());
+		
+		mockMvc.perform(put("/categories/" + c1.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$._id", is(c1.get_id())))
+			.andExpect(jsonPath("$.name", is(modifiedCategory1.getName())))
+			.andExpect(jsonPath("$.icon", is(modifiedCategory1.getIcon())))
+			.andExpect(jsonPath("$.favorite", is(modifiedCategory1.isFavorite())));
+		
+		// Modify p2
+		Category modifiedCategory2 = new Category(c2);
+		modifiedCategory2.setName("Super burgers");
+		
+		mockMvc.perform(put("/categories/" + c2.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory2)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$._id", is(c2.get_id())))
+			.andExpect(jsonPath("$.name", is(modifiedCategory2.getName())))
+			.andExpect(jsonPath("$.icon", is(modifiedCategory2.getIcon())))
+			.andExpect(jsonPath("$.favorite", is(modifiedCategory2.isFavorite())));
+		
+		mockMvc.perform(get("/categories"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$", hasSize(2)));
+		
+		// Create new categories
+		Category c3 = new Category("Drinks", "beverage", true);
+		Category c4 = new Category("Coffees", "coffee", false);
+		c3 = categoryRepository.save(c3);
+		c4 = categoryRepository.save(c4);
+		
+		Category modifiedCategory3 = new Category();
+		modifiedCategory3.setName("coffees");
+		
+		// The new name is already being used, should be rejected
+		mockMvc.perform(put("/categories/" + c3.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory3)))
+			.andExpect(status().isNotAcceptable());
+		
+		mockMvc.perform(get("/categories"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$", hasSize(4)));
 	}
 
 	@Test

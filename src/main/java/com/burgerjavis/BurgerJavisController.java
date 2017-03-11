@@ -366,22 +366,32 @@ public class BurgerJavisController {
 
 	/* Modify existing category */
 	@RequestMapping (value = "/categories/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<Boolean> modifyCategory
+	public ResponseEntity<Category> modifyCategory
 			(@PathVariable ("id") String id, @RequestBody Category category) {
-		Category currentCategory = categoryRepository.findOne(id);
-		// Check if key (name) is modified
-		if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
-			// Key has been modified
-			if(categoryRepository.findOne(category.getName()) == null) {
-				// Remove current Category and create a new Category
-				categoryRepository.delete(currentCategory);
-			} else {
-				// A Category with this name already exists
-				return new ResponseEntity<Boolean>(false, HttpStatus.NOT_ACCEPTABLE);
+		Category modifiedCategory = null;
+		try {
+			Category currentCategory = categoryRepository.findOne(id);
+			if(currentCategory == null) {
+				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_FOUND);
 			}
+			if(!CategoryValidator.validateCategory(category)) {
+				// Category is not valid
+				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
+			}
+			// Check if name is modified
+			if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
+				// Name has been modified
+				if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
+					// An ingredient with this name already exists
+					return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
+				}
+			}
+			currentCategory.updateCategory(category);
+			modifiedCategory = categoryRepository.save(currentCategory);
+			return new ResponseEntity<Category>(modifiedCategory, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<Category>(modifiedCategory, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		categoryRepository.save(category);
-		return new ResponseEntity<Boolean>(true, HttpStatus.OK);
 	}
 
 	/* Delete referenced category */
