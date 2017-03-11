@@ -37,7 +37,7 @@ public class Category {
 		this("", "", false);
 	}
 	
-	public void updateCateogry(Category category) {
+	public void updateCategory(Category category) {
 		this.name = category.name;
 		this.icon = category.icon;
 		this.favorite = category.favorite;
