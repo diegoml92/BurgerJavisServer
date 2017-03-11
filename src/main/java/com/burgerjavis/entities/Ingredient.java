@@ -30,7 +30,9 @@ public class Ingredient {
 		this(name, 0.0f);
 	}
 	
-	public Ingredient() {}
+	public Ingredient() {
+		this("", 0);
+	}
 	
 	public void updateIngredient(Ingredient ingredient) {
 		this.name = ingredient.name;

@@ -12,12 +12,12 @@ import com.burgerjavis.entities.OrderItem;
 
 public class OrderValidator {
 	
-	public static boolean validateOrderName(String name) {
+	private static boolean validateOrderName(String name) {
 		name = name.trim();
 		return ValidationPatterns.ORDER_NAME_PATTERN.matcher(name).matches();
 	}
 	
-	public static boolean validateOrderItems(List<OrderItem> items) {
+	private static boolean validateOrderItems(List<OrderItem> items) {
 		boolean valid = true;
 		int i = 0;
 		while (valid && i < items.size()) {
