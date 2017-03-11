@@ -13,19 +13,19 @@ import com.burgerjavis.entities.Product;
 
 public class ProductValidator {
 	
-	public static boolean validateProductName(String name) {
+	private static boolean validateProductName(String name) {
 		return ValidationPatterns.PRODUCT_NAME_PATTERN.matcher(name).matches();
 	}
 	
-	public static boolean validateProductPrice(float price) {
+	private static boolean validateProductPrice(float price) {
 		return price >= 0;
 	}
 	
-	public static boolean validateProductCategory(Category category) {
+	private static boolean validateProductCategory(Category category) {
 		return CategoryValidator.validateCategory(category);
 	}
 	
-	public static boolean validateProductIngredients(List<Ingredient> ingredients) {
+	private static boolean validateProductIngredients(List<Ingredient> ingredients) {
 		boolean valid = true;
 		int i = 0;
 		while(valid && i < ingredients.size()) {

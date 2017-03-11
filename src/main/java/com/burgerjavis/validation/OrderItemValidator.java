@@ -10,11 +10,11 @@ import com.burgerjavis.entities.Product;
 
 public class OrderItemValidator {
 	
-	public static boolean validateOrderItemAmount (int amount) {
+	private static boolean validateOrderItemAmount (int amount) {
 		return amount >= 0;
 	}
 	
-	public static boolean validateOrderItemProduct(Product product) {
+	private static boolean validateOrderItemProduct(Product product) {
 		return ProductValidator.validateProduct(product);
 	}
 	

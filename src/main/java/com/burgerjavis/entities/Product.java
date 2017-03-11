@@ -39,11 +39,17 @@ public class Product {
 		this(name, price, category, new ArrayList<Ingredient>());
 	}
 	
+	public Product (String name, float price, List<Ingredient> ingredients) {
+		this(name, price, new Category(), ingredients);
+	}
+	
 	public Product(String name, float price) {
 		this(name, price, new Category(), new ArrayList<Ingredient>());
 	}
 	
-	public Product() {}
+	public Product() {
+		this("", 0, new Category(), new ArrayList<Ingredient>());
+	}
 	
 	public void updateProduct (Product product) {
 		this.name = product.name;

@@ -14,6 +14,10 @@ public class OrderItem {
 		this.product = product;
 		this.amount = amount;
 	}
+	
+	public OrderItem() {
+		this(new Product(), 0);
+	}
 
 	public Product getProduct() {
 		return product;

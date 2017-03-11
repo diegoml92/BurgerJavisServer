@@ -40,7 +40,9 @@ public class Order {
 		this(name, new ArrayList<OrderItem>(), false);
 	}
 	
-	public Order() {}
+	public Order() {
+		this("", new ArrayList<OrderItem>(), false);
+	}
 	
 	
 	public void updateOrder(Order order) {

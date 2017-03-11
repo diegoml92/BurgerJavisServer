@@ -9,11 +9,11 @@ import com.burgerjavis.entities.Category;
 
 public class CategoryValidator {
 	
-	public static boolean validateCategoryName(String name) {
+	private static boolean validateCategoryName(String name) {
 		return ValidationPatterns.CATEGORY_NAME_PATTERN.matcher(name).matches();
 	}
 	
-	public static boolean validateCategoryIcon(String icon) {
+	private static boolean validateCategoryIcon(String icon) {
 		return ValidationPatterns.CATEGORY_ICON_PATTERN.matcher(icon).matches();
 	}
 	
