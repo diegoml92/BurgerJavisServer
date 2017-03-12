@@ -51,6 +51,14 @@ public class Order {
 		this.finished = order.finished;
 	}
 	
+	public float calculatePrice() {
+		float price = 0.0f;
+		for(OrderItem item : this.items) {
+			price += item.getProduct().getPrice() * item.getAmount();
+		}
+		return price;
+	}
+	
 	public String get_id() {
 		return _id;
 	}

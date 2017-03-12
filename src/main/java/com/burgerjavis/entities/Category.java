@@ -33,6 +33,10 @@ public class Category {
 		this(name, icon, false);
 	}
 	
+	public Category(String name) {
+		this(name, "", false);
+	}
+	
 	public Category() {
 		this("", "", false);
 	}
