@@ -15,4 +15,6 @@ public interface OrderRepository extends CrudRepository<Order, String> {
 	
 	public List<Order> findByNameIgnoreCase (String name);
 	
+	public List<Order> findByFinishedTrue ();
+	
 }

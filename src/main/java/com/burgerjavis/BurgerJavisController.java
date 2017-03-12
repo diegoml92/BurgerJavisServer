@@ -24,6 +24,7 @@ import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
 import com.burgerjavis.repositories.ProductRepository;
+import com.burgerjavis.summary.SummaryData;
 import com.burgerjavis.validation.CategoryValidator;
 import com.burgerjavis.validation.IngredientValidator;
 import com.burgerjavis.validation.OrderValidator;
@@ -438,9 +439,20 @@ public class BurgerJavisController {
 	// SUMMARY HANDLER
 
 	/* Return summary data */
-	/*@RequestMapping (value = "/summary", method = RequestMethod.GET)
-	public SummaryData getSummaryData() {
-		return summaryRepository.getSummaryData();  
-	}*/
+	@RequestMapping (value = "/summary", method = RequestMethod.GET)
+	public ResponseEntity<SummaryData> getSummaryData() {
+		SummaryData data = null;
+		try {
+			List<Order> orders = orderRepository.findByFinishedTrue();
+			List<Category> categories = (List<Category>) categoryRepository.findAll();
+			if (orders.size() > 0) {
+				data = new SummaryData(orders, categories);
+				return new ResponseEntity<SummaryData>(data, HttpStatus.OK);
+			}
+			return new ResponseEntity<SummaryData>(data, HttpStatus.NO_CONTENT);
+		} catch (Exception e) {
+			return new ResponseEntity<SummaryData>(data, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 }
