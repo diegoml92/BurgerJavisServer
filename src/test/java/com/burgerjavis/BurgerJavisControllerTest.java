@@ -8,7 +8,6 @@ package com.burgerjavis;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.closeTo;
-import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -23,7 +22,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -745,10 +743,10 @@ public class BurgerJavisControllerTest {
 		c3 = categoryRepository.save(c3);
 		c4 = categoryRepository.save(c4);
 		
-		Category modifiedCategory3 = new Category();
+		Category modifiedCategory3 = new Category(c3);
 		modifiedCategory3.setName("coffees");
 		
-		// The new name is already being used, should be rejected
+		// The new name is already being used, must be rejected
 		mockMvc.perform(put("/categories/" + c3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(modifiedCategory3)))
@@ -758,6 +756,16 @@ public class BurgerJavisControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(4)));
+		
+		Category modifiedCategory4 = new Category(c4);
+		modifiedCategory4.setFavorite(true);
+		
+		// Maximum number of favorite categories reached
+		mockMvc.perform(put("/categories/" + c4.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory4)))
+			.andExpect(status().isNotAcceptable());
+		
 	}
 
 	@Test
@@ -812,13 +820,6 @@ public class BurgerJavisControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(3)));
-		
-		// There are 3 favorite categories already
-		Category c5 = new Category("Beers", "beer", true);
-		mockMvc.perform(post("/categories")
-				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(c5)))
-			.andExpect(status().isNotAcceptable());
 	}
 	
 	@After

@@ -378,6 +378,12 @@ public class BurgerJavisController {
 				// Category is not valid
 				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
 			}
+			if(!currentCategory.isFavorite() && category.isFavorite()) {
+				if(categoryRepository.findByFavoriteTrue().size() >= BurgerJavisConstants.MAX_FAVORITES) {
+					// Max number of favorites reached
+					return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
+				}
+			}
 			// Check if name is modified
 			if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
 				// Name has been modified
@@ -419,10 +425,6 @@ public class BurgerJavisController {
 			}
 			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
 				// A category with this name already exists
-				return new ResponseEntity<Category>(newCategory, HttpStatus.NOT_ACCEPTABLE);
-			}
-			if(categoryRepository.findByFavoriteTrue().size() >= BurgerJavisConstants.MAX_FAVORITES) {
-				// Max number of favorites reached
 				return new ResponseEntity<Category>(newCategory, HttpStatus.NOT_ACCEPTABLE);
 			}
 			newCategory = categoryRepository.save(category);
