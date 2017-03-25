@@ -96,15 +96,11 @@ public class BurgerJavisControllerTest {
 		mockMvc.perform(get("/orders"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-        	.andExpect(jsonPath("$", hasSize(2)))
+        	.andExpect(jsonPath("$", hasSize(1)))
         	.andExpect(jsonPath("$[0]._id", is(order1.get_id())))
         	.andExpect(jsonPath("$[0].name", is(order1.getName())))
         	.andExpect(jsonPath("$[0].items", hasSize(order1.getItems().size())))
-        	.andExpect(jsonPath("$[0].finished", is(order1.isFinished())))
-        	.andExpect(jsonPath("$[1]._id", is(order2.get_id())))
-        	.andExpect(jsonPath("$[1].name", is(order2.getName())))
-        	.andExpect(jsonPath("$[1].items", hasSize(order2.getItems().size())))
-        	.andExpect(jsonPath("$[1].finished", is(order2.isFinished())));
+        	.andExpect(jsonPath("$[0].finished", is(order1.isFinished())));
 
 	}
 
@@ -161,7 +157,7 @@ public class BurgerJavisControllerTest {
 		mockMvc.perform(get("/orders"))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$", hasSize(2)));
+			.andExpect(jsonPath("$", hasSize(0)));
 		
 		// Create new orders
 		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), true);
@@ -190,7 +186,7 @@ public class BurgerJavisControllerTest {
 		mockMvc.perform(get("/orders"))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$", hasSize(4)));
+			.andExpect(jsonPath("$", hasSize(1)));
 	
 	}
 
@@ -212,7 +208,7 @@ public class BurgerJavisControllerTest {
 		mockMvc.perform(get("/orders"))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$", hasSize(1)));
+			.andExpect(jsonPath("$", hasSize(0)));
 				
 	}
 

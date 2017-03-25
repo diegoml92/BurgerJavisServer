@@ -17,4 +17,6 @@ public interface OrderRepository extends CrudRepository<Order, String> {
 	
 	public List<Order> findByFinishedTrue ();
 	
+	public List<Order> findByFinishedFalse ();
+	
 }

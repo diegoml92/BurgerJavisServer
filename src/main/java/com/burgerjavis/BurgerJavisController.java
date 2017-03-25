@@ -50,7 +50,7 @@ public class BurgerJavisController {
 	public ResponseEntity<List<Order>> getOrders() {
 		List<Order> orders = null;
 		try {
-			orders = (List<Order>) orderRepository.findAll();
+			orders = (List<Order>) orderRepository.findByFinishedFalse();
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.INTERNAL_SERVER_ERROR);
