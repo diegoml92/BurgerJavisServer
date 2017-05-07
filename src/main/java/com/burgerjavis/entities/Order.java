@@ -18,30 +18,33 @@ public class Order {
 	private String name;
 	private List<OrderItem> items;
 	private boolean finished;
+	private String username;
 		
 	public Order(Order order) {
 		this._id = order._id;
 		this.name = order.name;
 		this.items = order.items;
 		this.finished = order.finished;
+		this.username = order.username;
 	}
 	
-	public Order(String name, List<OrderItem> items, boolean finished) {
+	public Order(String name, List<OrderItem> items, boolean finished, String username) {
 		this.name = name;
 		this.items = items;
 		this.finished = finished;
+		this.username = username;
 	}
 	
-	public Order(String name, List<OrderItem> items) {
-		this(name, items, false);
+	public Order(String name, List<OrderItem> items, String username) {
+		this(name, items, false, username);
 	}
 	
-	public Order(String name) {
-		this(name, new ArrayList<OrderItem>(), false);
+	public Order(String name, String username) {
+		this(name, new ArrayList<OrderItem>(), false, username);
 	}
 	
 	public Order() {
-		this("", new ArrayList<OrderItem>(), false);
+		this("", new ArrayList<OrderItem>(), false, "");
 	}
 	
 	
@@ -89,6 +92,14 @@ public class Order {
 
 	public void setFinished(boolean finished) {
 		this.finished = finished;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 }

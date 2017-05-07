@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.burgerjavis.entities.Category;
@@ -19,10 +20,12 @@ import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.entities.OrderItem;
 import com.burgerjavis.entities.Product;
+import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
 import com.burgerjavis.repositories.ProductRepository;
+import com.burgerjavis.repositories.UserRepository;
 
 @Component
 public class DatabaseLoader {
@@ -38,10 +41,15 @@ public class DatabaseLoader {
 	private IngredientRepository ingredientRepository;
 	@Autowired
 	private CategoryRepository categoryRepository;
+	@Autowired
+	private UserRepository userRepository;
 	
 	@PostConstruct
 	private void initDatabase() {
 		mongoTemplate.getDb().dropDatabase();
+		
+		userRepository.save(new User("Prueba", new BCryptPasswordEncoder().encode("pass")));
+		userRepository.save(new User("Admin", new BCryptPasswordEncoder().encode("admin")));
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
 		Ingredient i1 = ingredientRepository.save(new Ingredient("Carne"));
@@ -81,7 +89,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi0 = Arrays.asList(oi0_0, oi0_1, oi0_2, oi0_3, oi0_4);
 		
-		orderRepository.save(new Order("Mesa 1", oi0));
+		orderRepository.save(new Order("Mesa 1", oi0, "prueba"));
 		
 		OrderItem oi1_0 = new OrderItem(p5, 1);
 		OrderItem oi1_1 = new OrderItem(p6, 1);
@@ -90,7 +98,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi1 = Arrays.asList(oi1_0, oi1_1, oi1_2, oi1_3);
 		
-		orderRepository.save(new Order("Mesa 2", oi1));
+		orderRepository.save(new Order("Mesa 2", oi1, "prueba"));
 		
 		OrderItem oi2_0 = new OrderItem(p0, 2);
 		OrderItem oi2_1 = new OrderItem(p1, 1);
@@ -98,14 +106,14 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi2 = Arrays.asList(oi2_0, oi2_1, oi2_2);
 		
-		orderRepository.save(new Order("Mesa 3", oi2));
+		orderRepository.save(new Order("Mesa 3", oi2, "admin"));
 		
 		OrderItem oi3_0 = new OrderItem(p9, 2);
 		OrderItem oi3_1 = new OrderItem(p3, 2);
 		
 		List<OrderItem> oi3 = Arrays.asList(oi3_0, oi3_1);
 		
-		orderRepository.save(new Order("Mesa 4", oi3, true));
+		orderRepository.save(new Order("Mesa 4", oi3, true, "prueba"));
 		
 		OrderItem oi4_0 = new OrderItem(p0, 5);
 		OrderItem oi4_1 = new OrderItem(p1, 3);
@@ -116,7 +124,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi4 = Arrays.asList(oi4_0, oi4_1, oi4_2, oi4_3, oi4_4, oi4_5);
 		
-		orderRepository.save(new Order("Mesa 5", oi4, true));
+		orderRepository.save(new Order("Mesa 5", oi4, true, "admin"));
 		
 	}
 
