@@ -48,8 +48,8 @@ public class DatabaseLoader {
 	private void initDatabase() {
 		mongoTemplate.getDb().dropDatabase();
 		
-		userRepository.save(new User("Prueba", new BCryptPasswordEncoder().encode("pass")));
-		userRepository.save(new User("Admin", new BCryptPasswordEncoder().encode("admin")));
+		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass")));
+		userRepository.save(new User("admin", new BCryptPasswordEncoder().encode("admin")));
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
 		Ingredient i1 = ingredientRepository.save(new Ingredient("Carne"));
