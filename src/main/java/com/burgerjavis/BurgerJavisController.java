@@ -20,10 +20,12 @@ import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.entities.Product;
+import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
 import com.burgerjavis.repositories.ProductRepository;
+import com.burgerjavis.repositories.UserRepository;
 import com.burgerjavis.summary.SummaryData;
 import com.burgerjavis.validation.CategoryValidator;
 import com.burgerjavis.validation.IngredientValidator;
@@ -42,6 +44,8 @@ public class BurgerJavisController {
 	private IngredientRepository ingredientRepository;
 	@Autowired
 	private CategoryRepository categoryRepository;
+	@Autowired
+	private UserRepository userRepository;
 	  
 	// ORDER HANDLER
 
@@ -452,6 +456,24 @@ public class BurgerJavisController {
 			return new ResponseEntity<SummaryData>(data, HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<SummaryData>(data, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	// USER HANDLER
+	
+	/* Return user list */
+	@RequestMapping (value = "/users/{username}", method = RequestMethod.GET)
+	public ResponseEntity <Credentials> getUsers(@PathVariable ("username") String username) {
+		Credentials credentials = null;
+		try {
+			List<User> users = userRepository.findByUsernameIgnoreCase(username);
+			if (users.isEmpty()) {
+				return new ResponseEntity<Credentials>(credentials, HttpStatus.NOT_FOUND);
+			}
+			credentials = new Credentials(users.get(0));
+			return new ResponseEntity<Credentials>(credentials, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<Credentials>(credentials, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

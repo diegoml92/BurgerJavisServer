@@ -15,6 +15,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +31,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -40,16 +44,18 @@ import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.entities.OrderItem;
 import com.burgerjavis.entities.Product;
+import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
 import com.burgerjavis.repositories.ProductRepository;
+import com.burgerjavis.repositories.UserRepository;
 import com.burgerjavis.util.UnitTestUtil;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes={MongoTestConfiguration.class})
 @WebAppConfiguration
-public class BurgerJavisControllerTest {
+public class BurgerJavisServerControllerTest {
 	
 	@Autowired
 	private WebApplicationContext context;
@@ -63,6 +69,8 @@ public class BurgerJavisControllerTest {
 	private IngredientRepository ingredientRepository;
 	@Autowired
 	private CategoryRepository categoryRepository;
+	@Autowired
+	private UserRepository userRepository;
 	
 	private MockMvc mockMvc;
 
@@ -73,7 +81,9 @@ public class BurgerJavisControllerTest {
 	@Before
 	public void setUp() throws Exception {
 		mongoTemplate.getDb().dropDatabase();
-		mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+		mockMvc = MockMvcBuilders.webAppContextSetup(context)
+					.apply(springSecurity())
+					.build();
 	}
 	
 	// ORDER HANDLER
@@ -81,57 +91,86 @@ public class BurgerJavisControllerTest {
 	@Test
 	public void testGetOrders() throws Exception {
 		
-		mockMvc.perform(get("/orders"))
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/orders").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/orders").with(httpBasicHeader))
     		.andExpect(status().isOk())
     		.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
     		.andExpect(jsonPath("$", hasSize(0)));
 		
 		//Initialize database
-		Order order1 = new Order("Order 1");
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true);
+		Order order1 = new Order("Order 1", "user1");
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, "user2");
 		orderRepository.save(order1);
 		orderRepository.save(order2);
 		
 		
-		mockMvc.perform(get("/orders"))
+		mockMvc.perform(get("/orders").with(httpBasicHeader))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
         	.andExpect(jsonPath("$", hasSize(1)))
         	.andExpect(jsonPath("$[0]._id", is(order1.get_id())))
         	.andExpect(jsonPath("$[0].name", is(order1.getName())))
         	.andExpect(jsonPath("$[0].items", hasSize(order1.getItems().size())))
-        	.andExpect(jsonPath("$[0].finished", is(order1.isFinished())));
+        	.andExpect(jsonPath("$[0].finished", is(order1.isFinished())))
+        	.andExpect(jsonPath("$[0].username",  is(order1.getUsername())));
 
 	}
 
 	@Test
 	public void testGetOrder() throws Exception {
 		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/orders/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		//Initialize database
-		Order order1 = new Order("Order 1");
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true);
+		Order order1 = new Order("Order 1", "user1");
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, "user2");
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
-		mockMvc.perform(get("/orders/thisIdDoesNotExist"))
+		mockMvc.perform(get("/orders/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/orders/" + order2.get_id()))
+		mockMvc.perform(get("/orders/" + order2.get_id()).with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(order2.get_id())))
 			.andExpect(jsonPath("$.name", is(order2.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order2.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order2.isFinished())));
+			.andExpect(jsonPath("$.finished", is(order2.isFinished())))
+			.andExpect(jsonPath("$.username",  is(order2.getUsername())));
 		
 	}
 
 	@Test
 	public void testModifyOrder() throws Exception {
 		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
-		Order order1 = new Order("Order 1");
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true);
+		Order order1 = new Order("Order 1", "user1");
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, "user2");
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
@@ -140,28 +179,37 @@ public class BurgerJavisControllerTest {
 		modifiedOrder1.setName("New order");
 		modifiedOrder1.setFinished(true);
 		
+		mockMvc.perform(get("/orders/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		mockMvc.perform(put("/orders/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 				
 		mockMvc.perform(put("/orders/" + order1.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(order1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedOrder1.getName())))
 			.andExpect(jsonPath("$.items", hasSize(modifiedOrder1.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(modifiedOrder1.isFinished())));;
+			.andExpect(jsonPath("$.finished", is(modifiedOrder1.isFinished())))
+			.andExpect(jsonPath("$.username",  is(modifiedOrder1.getUsername())));
 		
-		mockMvc.perform(get("/orders"))
+		mockMvc.perform(get("/orders").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
 		
 		// Create new orders
-		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), true);
-		Order order4 = new Order("Order 4");
+		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), true, "user1");
+		Order order4 = new Order("Order 4", "user2");
 		order3 = orderRepository.save(order3);
 		order4 = orderRepository.save(order4);
 		
@@ -171,7 +219,8 @@ public class BurgerJavisControllerTest {
 		// The new name is already being used, should be rejected
 		mockMvc.perform(put("/orders/" + order3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedOrder2)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder2))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Order modifiedOrder3 = new Order(order4);
@@ -180,10 +229,11 @@ public class BurgerJavisControllerTest {
 		// The new name contains invalid characters
 		mockMvc.perform(put("/orders/" + order4.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedOrder3)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
-		mockMvc.perform(get("/orders"))
+		mockMvc.perform(get("/orders").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(1)));
@@ -193,19 +243,29 @@ public class BurgerJavisControllerTest {
 	@Test
 	public void testDeleteOrder() throws Exception {
 		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(delete("/orders/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		//Initialize database
-		Order order1 = new Order("Order 1");
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true);
+		Order order1 = new Order("Order 1", "user1");
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, "user2");
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
-		mockMvc.perform(delete("/orders/thisIdDoesNotExist"))
+		mockMvc.perform(delete("/orders/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(delete("/orders/" + order1.get_id()))
+		mockMvc.perform(delete("/orders/" + order1.get_id()).with(httpBasicHeader))
 			.andExpect(status().isOk());
 		
-		mockMvc.perform(get("/orders"))
+		mockMvc.perform(get("/orders").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
@@ -215,51 +275,70 @@ public class BurgerJavisControllerTest {
 	@Test
 	public void testAddOrder() throws Exception {
 		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
-		Order order1 = new Order("Order 1");
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true);
+		Order order1 = new Order("Order 1", "user1");
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, "user2");
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
 		// An order with this name already exists, and is not finished
-		Order order3 = new Order("order 1");
+		Order order3 = new Order("order 1", "user2");
 		
 		mockMvc.perform(post("/orders/")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(order3)))
+				.content(UnitTestUtil.convertObjectToJson(order3))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(post("/orders/")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(order3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		// An order with this name already exists, but it is finished
-		Order order4 = new Order("Order 2");
+		Order order4 = new Order("Order 2", "user3");
 		
 		mockMvc.perform(post("/orders/")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(order4)))
+				.content(UnitTestUtil.convertObjectToJson(order4))
+					.with(httpBasicHeader))
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.name", is(order4.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order4.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order4.isFinished())));
+			.andExpect(jsonPath("$.finished", is(order4.isFinished())))
+			.andExpect(jsonPath("$.username",  is(order4.getUsername())));
 		
 		// The order name contains invalid characters
-		Order order5 = new Order("Order 5??");
+		Order order5 = new Order("Order 5??", "user2");
 		
 		mockMvc.perform(post("/orders/")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(order5)))
+				.content(UnitTestUtil.convertObjectToJson(order5))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		// An order with this name already exists, but it is finished
-		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), true);
+		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), true, "user1");
 		
 		mockMvc.perform(post("/orders/")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(order6)))
+				.content(UnitTestUtil.convertObjectToJson(order6))
+					.with(httpBasicHeader))
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.name", is(order6.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order6.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order6.isFinished())));
+			.andExpect(jsonPath("$.finished", is(order6.isFinished())))
+			.andExpect(jsonPath("$.username",  is(order6.getUsername())));
 
 	}
 	
@@ -268,7 +347,17 @@ public class BurgerJavisControllerTest {
 	@Test
 	public void testGetProducts() throws Exception {
 		
-		mockMvc.perform(get("/products"))
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/products").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
@@ -280,7 +369,7 @@ public class BurgerJavisControllerTest {
 		productRepository.save(p1);
 		productRepository.save(p2);
 		
-		mockMvc.perform(get("/products"))
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 	    	.andExpect(status().isOk())
 	    	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 	    	.andExpect(jsonPath("$", hasSize(2)))
@@ -296,6 +385,17 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testGetProduct() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/products/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
 		Category category = new Category("Sandwiches", "sandwich");
@@ -303,10 +403,10 @@ public class BurgerJavisControllerTest {
 		productRepository.save(p1);
 		productRepository.save(p2);
 		
-		mockMvc.perform(get("/products/thisIdDoesNotExist"))
+		mockMvc.perform(get("/products/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/products/" + p2.get_id()))
+		mockMvc.perform(get("/products/" + p2.get_id()).with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(p2.get_id())))
@@ -317,6 +417,13 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testModifyProduct() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
 		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
@@ -331,12 +438,20 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/products/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedProduct1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct1))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(put("/products/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct1))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
 		mockMvc.perform(put("/products/" + p2.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedProduct1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct1))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(p2.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedProduct1.getName())))
@@ -351,7 +466,8 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/products/" + p1.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedProduct2)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct2))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(p1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedProduct2.getName())))
@@ -360,7 +476,7 @@ public class BurgerJavisControllerTest {
 			.andExpect(jsonPath("$.category.icon", is(modifiedProduct2.getCategory().getIcon())))
 			.andExpect(jsonPath("$.ingredients", hasSize(modifiedProduct2.getIngredients().size())));
 		
-		mockMvc.perform(get("/products"))
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(2)));
@@ -378,7 +494,8 @@ public class BurgerJavisControllerTest {
 		// The new name is already being used, should be rejected
 		mockMvc.perform(put("/products/" + p3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedProduct3)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Product modifiedProduct4 = new Product(p4);
@@ -387,10 +504,11 @@ public class BurgerJavisControllerTest {
 		// The new price is invalid
 		mockMvc.perform(put("/products/" + p4.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedProduct4)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedProduct4))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
-		mockMvc.perform(get("/products"))
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(4)));
@@ -399,6 +517,17 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testDeleteProduct() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
 		Category category = new Category("Sandwiches", "sandwich");
@@ -406,13 +535,13 @@ public class BurgerJavisControllerTest {
 		productRepository.save(p1);
 		productRepository.save(p2);
 		
-		mockMvc.perform(delete("/products/thisIdDoesNotExist"))
+		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(delete("/products/" + p1.get_id()))
+		mockMvc.perform(delete("/products/" + p1.get_id()).with(httpBasicHeader))
 				.andExpect(status().isOk());
 		
-		mockMvc.perform(get("/products"))
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(1)));		
@@ -420,6 +549,14 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testAddProduct() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
 		Category category = new Category("Sandwiches", "sandwich");
@@ -429,22 +566,32 @@ public class BurgerJavisControllerTest {
 		
 		// A product with this name already exists
 		Product p3 = new Product("Burger", 5.6f);
+		
 		mockMvc.perform(post("/products")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(p3)))
+				.content(UnitTestUtil.convertObjectToJson(p3))
+					.with(wrongHeader))
+		.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(post("/products")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(p3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		// The product name contains invalid characters
 		Product p4 = new Product("Burger??", 5.6f);
 		mockMvc.perform(post("/products")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(p4)))
+				.content(UnitTestUtil.convertObjectToJson(p4))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Product p5 = new Product("Hotdog", 3.50f);
 		mockMvc.perform(post("/products")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(p5)))
+				.content(UnitTestUtil.convertObjectToJson(p5))
+					.with(httpBasicHeader))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.name", is(p5.getName())))
 			.andExpect(jsonPath("$.price", is((double)p5.getPrice())))
@@ -452,7 +599,7 @@ public class BurgerJavisControllerTest {
 			.andExpect(jsonPath("$.category.icon", is(p5.getCategory().getIcon())))
 			.andExpect(jsonPath("$.ingredients", hasSize(p5.getIngredients().size())));
 		
-		mockMvc.perform(get("/products"))
+		mockMvc.perform(get("/products").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(3)));
@@ -463,7 +610,17 @@ public class BurgerJavisControllerTest {
 	@Test
 	public void testGetIngredients() throws Exception {
 		
-		mockMvc.perform(get("/ingredients"))
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/ingredients").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
@@ -474,7 +631,7 @@ public class BurgerJavisControllerTest {
 		ingredientRepository.save(i1);
 		ingredientRepository.save(i2);
 		
-		mockMvc.perform(get("/ingredients"))
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 	    	.andExpect(status().isOk())
 	    	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 	    	.andExpect(jsonPath("$", hasSize(2)))
@@ -488,16 +645,27 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testGetIngredient() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
 		Ingredient i2 = new Ingredient("Cheese", 0.25f);
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
-		mockMvc.perform(get("/ingredients/thisIdDoesNotExist"))
+		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/ingredients/" + i2.get_id()))
+		mockMvc.perform(get("/ingredients/" + i2.get_id()).with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(i2.get_id())))
@@ -507,6 +675,14 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testModifyIngredient() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
 		Ingredient i2 = new Ingredient("Cheese", 0.25f);
@@ -519,12 +695,20 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/ingredients/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient1))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(put("/ingredients/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient1))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
 		mockMvc.perform(put("/ingredients/" + i1.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient1))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(i1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedIngredient1.getName())))
@@ -537,13 +721,14 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/ingredients/" + i2.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient2)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient2))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(i2.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedIngredient2.getName())))
 			.andExpect(jsonPath("$.extraPrice", is((double)modifiedIngredient2.getExtraPrice())));
 		
-		mockMvc.perform(get("/ingredients"))
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(2)));
@@ -560,7 +745,8 @@ public class BurgerJavisControllerTest {
 		// The new name is already being used, should be rejected
 		mockMvc.perform(put("/ingredients/" + i3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient3)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Ingredient modifiedIngredient4 = new Ingredient(i4);
@@ -569,10 +755,11 @@ public class BurgerJavisControllerTest {
 		// The price is invalid
 		mockMvc.perform(put("/ingredients/" + i4.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient4)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient4))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
-		mockMvc.perform(get("/ingredients"))
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(4)));
@@ -581,19 +768,30 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testDeleteIngredient() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
 		Ingredient i2 = new Ingredient("Cheese", 0.25f);
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
-		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist"))
+		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(delete("/ingredients/" + i1.get_id()))
+		mockMvc.perform(delete("/ingredients/" + i1.get_id()).with(httpBasicHeader))
 				.andExpect(status().isOk());
 		
-		mockMvc.perform(get("/ingredients"))
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(1)))
@@ -604,6 +802,14 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testAddIngredient() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
 		Ingredient i2 = new Ingredient("Cheese", 0.25f);
@@ -612,27 +818,37 @@ public class BurgerJavisControllerTest {
 		
 		// An ingredient with this name already exists
 		Ingredient i3 = new Ingredient("cheese");
+		
 		mockMvc.perform(post("/ingredients")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(i3)))
+				.content(UnitTestUtil.convertObjectToJson(i3))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(post("/ingredients")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(i3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		// This ingredient's name contains invalid characters
 		Ingredient i4 = new Ingredient("Lettuce?/");
 		mockMvc.perform(post("/products")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(i4)))
+				.content(UnitTestUtil.convertObjectToJson(i4))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Ingredient i5 = new Ingredient("Bacon", 0.40f);
 		mockMvc.perform(post("/ingredients")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(i5)))
+				.content(UnitTestUtil.convertObjectToJson(i5))
+					.with(httpBasicHeader))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.name", is(i5.getName())))
 			.andExpect(jsonPath("$.extraPrice", closeTo((double)i5.getExtraPrice(),UnitTestUtil.DELTA_ERROR)));
 		
-		mockMvc.perform(get("/ingredients"))
+		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(3)));
@@ -643,7 +859,18 @@ public class BurgerJavisControllerTest {
 	
 	@Test
 	public void testGetCategories() throws Exception {
-		mockMvc.perform(get("/categories"))
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/categories").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
@@ -654,7 +881,7 @@ public class BurgerJavisControllerTest {
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
-		mockMvc.perform(get("/categories"))
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 	    	.andExpect(status().isOk())
 	    	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 	    	.andExpect(jsonPath("$", hasSize(2)))
@@ -671,16 +898,27 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testGetCategory() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
 		//Initialize database
 		Category c1 = new Category("Burgers", "burger", false);
 		Category c2 = new Category("Sandwiches", "sandwich", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
-		mockMvc.perform(get("/categories/thisIdDoesNotExist"))
+		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/categories/" + c2.get_id()))
+		mockMvc.perform(get("/categories/" + c2.get_id()).with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(c2.get_id())))
@@ -692,6 +930,14 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testModifyCategory() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Category c1 = new Category("Burgers", "burger", false);
 		Category c2 = new Category("Sandwiches", "sandwich", true);
@@ -705,12 +951,20 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/categories/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(put("/categories/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
 		mockMvc.perform(put("/categories/" + c1.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory1))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(c1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedCategory1.getName())))
@@ -723,14 +977,15 @@ public class BurgerJavisControllerTest {
 		
 		mockMvc.perform(put("/categories/" + c2.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedCategory2)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory2))
+					.with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(c2.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedCategory2.getName())))
 			.andExpect(jsonPath("$.icon", is(modifiedCategory2.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(modifiedCategory2.isFavorite())));
 		
-		mockMvc.perform(get("/categories"))
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(2)));
@@ -747,10 +1002,11 @@ public class BurgerJavisControllerTest {
 		// The new name is already being used, must be rejected
 		mockMvc.perform(put("/categories/" + c3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedCategory3)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
-		mockMvc.perform(get("/categories"))
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(4)));
@@ -761,26 +1017,38 @@ public class BurgerJavisControllerTest {
 		// Maximum number of favorite categories reached
 		mockMvc.perform(put("/categories/" + c4.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedCategory4)))
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory4))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 	}
 
 	@Test
 	public void testDeleteCategory() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Category c1 = new Category("Burgers", "burger", false);
 		Category c2 = new Category("Sandwiches", "sandwich", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
-		mockMvc.perform(delete("/categories/thisIdDoesNotExist"))
+		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(delete("/categories/" + c1.get_id()))
+		mockMvc.perform(delete("/categories/" + c1.get_id()).with(httpBasicHeader))
 				.andExpect(status().isOk());
 		
-		mockMvc.perform(get("/categories"))
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(1)))
@@ -792,6 +1060,14 @@ public class BurgerJavisControllerTest {
 
 	@Test
 	public void testAddCategory() throws Exception {
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
 		//Initialize database
 		Category c1 = new Category("Burgers", "burger", true);
 		Category c2 = new Category("Sandwiches", "sandwich", true);
@@ -800,21 +1076,30 @@ public class BurgerJavisControllerTest {
 		
 		// A category with this name already exists
 		Category c3 = new Category("burgers", "drink", false);
+		
 		mockMvc.perform(post("/categories")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(c3)))
+				.content(UnitTestUtil.convertObjectToJson(c3))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(post("/categories")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(c3))
+					.with(httpBasicHeader))
 			.andExpect(status().isNotAcceptable());
 		
 		Category c4 = new Category("Pizzas", "pizza", true);
 		mockMvc.perform(post("/categories")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(c4)))
+				.content(UnitTestUtil.convertObjectToJson(c4))
+					.with(httpBasicHeader))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.name", is(c4.getName())))
 			.andExpect(jsonPath("$.icon", is(c4.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(c4.isFavorite())));
 		
-		mockMvc.perform(get("/categories"))
+		mockMvc.perform(get("/categories").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(3)));
@@ -822,7 +1107,18 @@ public class BurgerJavisControllerTest {
 	
 	@Test
 	public void testGetSummaryData() throws Exception {
-		mockMvc.perform(get("/summary"))
+		
+		final String PASSWORD = "pass";
+		User user1 = new User("user1", new BCryptPasswordEncoder().encode(PASSWORD));
+		userRepository.save(user1);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor wrongHeader = httpBasic("aaa", "bbbb");
+		
+		mockMvc.perform(get("/summary").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/summary").with(httpBasicHeader))
 			.andExpect(status().isNoContent());
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
@@ -863,7 +1159,7 @@ public class BurgerJavisControllerTest {
 		
 		List<OrderItem> oi0 = Arrays.asList(oi0_0, oi0_1, oi0_2, oi0_3, oi0_4);
 		
-		orderRepository.save(new Order("Mesa 1", oi0));
+		orderRepository.save(new Order("Mesa 1", oi0, "user1"));
 		
 		OrderItem oi1_0 = new OrderItem(p5, 1);
 		OrderItem oi1_1 = new OrderItem(p6, 1);
@@ -872,7 +1168,7 @@ public class BurgerJavisControllerTest {
 		
 		List<OrderItem> oi1 = Arrays.asList(oi1_0, oi1_1, oi1_2, oi1_3);
 		
-		orderRepository.save(new Order("Mesa 2", oi1));
+		orderRepository.save(new Order("Mesa 2", oi1, "user1"));
 		
 		OrderItem oi2_0 = new OrderItem(p0, 2);
 		OrderItem oi2_1 = new OrderItem(p1, 1);
@@ -880,9 +1176,9 @@ public class BurgerJavisControllerTest {
 		
 		List<OrderItem> oi2 = Arrays.asList(oi2_0, oi2_1, oi2_2);
 		
-		orderRepository.save(new Order("Mesa 3", oi2));
+		orderRepository.save(new Order("Mesa 3", oi2, "user2"));
 		
-		mockMvc.perform(get("/summary"))
+		mockMvc.perform(get("/summary").with(httpBasicHeader))
 			.andExpect(status().isNoContent());
 		
 		OrderItem oi3_0 = new OrderItem(p9, 2);
@@ -890,7 +1186,7 @@ public class BurgerJavisControllerTest {
 		
 		List<OrderItem> oi3 = Arrays.asList(oi3_0, oi3_1);
 		
-		orderRepository.save(new Order("Mesa 4", oi3, true));
+		orderRepository.save(new Order("Mesa 4", oi3, true, "user1"));
 		
 		OrderItem oi4_0 = new OrderItem(p0, 5);
 		OrderItem oi4_1 = new OrderItem(p1, 3);
@@ -901,9 +1197,9 @@ public class BurgerJavisControllerTest {
 		
 		List<OrderItem> oi4 = Arrays.asList(oi4_0, oi4_1, oi4_2, oi4_3, oi4_4, oi4_5);
 		
-		orderRepository.save(new Order("Mesa 5", oi4, true));
+		orderRepository.save(new Order("Mesa 5", oi4, true, "user2"));
 		
-		mockMvc.perform(get("/summary"))
+		mockMvc.perform(get("/summary").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.profits", closeTo(62.65, UnitTestUtil.DELTA_ERROR)))
@@ -915,6 +1211,23 @@ public class BurgerJavisControllerTest {
 			.andExpect(jsonPath("$.topProducts[3]", hasSize(1)))
 			.andExpect(jsonPath("$.topProducts[4]", hasSize(2)));
 		
+	}
+	
+	@Test
+	public void testGetUser() throws Exception {
+		
+		// Initialize database
+		User u1 = new User("user1", new BCryptPasswordEncoder().encode("pass"));
+		userRepository.save(u1);
+		
+		mockMvc.perform(get("/users/thisUsernameDoesNotExist"))
+			.andExpect(status().isNotFound());
+		
+		mockMvc.perform(get("/users/USER1"))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.username", is(u1.getUsername())))
+			.andExpect(jsonPath("$.password", is(u1.getPassword())));
 		
 	}
 	
