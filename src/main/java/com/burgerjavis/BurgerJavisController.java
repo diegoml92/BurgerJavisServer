@@ -72,12 +72,16 @@ public class BurgerJavisController {
 		Order order = null;
 		try {
 			order = orderRepository.findOne(id);
-			HttpStatus httpStatus = order != null ? HttpStatus.OK : HttpStatus.NOT_FOUND;
-			if(httpStatus.is2xxSuccessful()) {
-				httpStatus = order.getUsername().equalsIgnoreCase(principal.getName()) ?
-						httpStatus : HttpStatus.UNAUTHORIZED;
+			if(order == null) {
+				return new ResponseEntity<Order>(order, HttpStatus.NOT_FOUND);
 			}
-			return new ResponseEntity<Order>(order, httpStatus);
+			if(!order.getUsername().equalsIgnoreCase(principal.getName())) {
+				return new ResponseEntity<Order>(order, HttpStatus.UNAUTHORIZED);
+			}
+			if(order.isFinished()) {
+				return new ResponseEntity<Order>(order, HttpStatus.FORBIDDEN);
+			}
+			return new ResponseEntity<Order>(order, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<Order>(order, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -98,6 +102,9 @@ public class BurgerJavisController {
 			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName())) {
 				// Unauthorized user
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
+			}
+			if(currentOrder.isFinished()) {
+				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
 			}
 			if(!OrderValidator.validateOrder(order)) {
 				// Order not valid
@@ -137,6 +144,9 @@ public class BurgerJavisController {
 			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName())) {
 				// Unauthorized user
 				return new ResponseEntity<Boolean>(false, HttpStatus.UNAUTHORIZED);
+			}
+			if(currentOrder.isFinished()) {
+				return new ResponseEntity<Boolean>(false, HttpStatus.FORBIDDEN);
 			}
 			orderRepository.delete(currentOrder);
 			return new ResponseEntity<Boolean>(true, HttpStatus.OK);
@@ -416,7 +426,7 @@ public class BurgerJavisController {
 			if(currentCategory == null) {
 				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_FOUND);
 			}
-			if(!CategoryValidator.validateCategory(category)) {
+			if(!CategoryValidator.validateCategory(category) || category.getName().trim().equalsIgnoreCase("")) {
 				// Category is not valid
 				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
 			}
@@ -464,7 +474,7 @@ public class BurgerJavisController {
 	public ResponseEntity<Category> addCategory(@RequestBody Category category) {
 		Category newCategory = null;
 		try {
-			if(!CategoryValidator.validateCategory(category)) {
+			if(!CategoryValidator.validateCategory(category) || category.getName().trim().equalsIgnoreCase("")) {
 				return new ResponseEntity<Category>(newCategory, HttpStatus.NOT_ACCEPTABLE);
 			}
 			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
