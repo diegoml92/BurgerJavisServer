@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -48,8 +50,11 @@ public class DatabaseLoader {
 	private void initDatabase() {
 		mongoTemplate.getDb().dropDatabase();
 		
-		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass")));
-		userRepository.save(new User("admin", new BCryptPasswordEncoder().encode("admin")));
+		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority("ROLE_WAITER") };
+		GrantedAuthority [] roles2 = { new SimpleGrantedAuthority("ROLE_ADMIN") };
+		
+		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles1)));
+		userRepository.save(new User("admin", new BCryptPasswordEncoder().encode("admin"), Arrays.asList(roles2)));
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
 		Ingredient i1 = ingredientRepository.save(new Ingredient("Carne"));
@@ -89,7 +94,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi0 = Arrays.asList(oi0_0, oi0_1, oi0_2, oi0_3, oi0_4);
 		
-		orderRepository.save(new Order("Mesa 1", oi0, "prueba"));
+		orderRepository.save(new Order("Mesa 1", oi0, "user1"));
 		
 		OrderItem oi1_0 = new OrderItem(p5, 1);
 		OrderItem oi1_1 = new OrderItem(p6, 1);
@@ -98,7 +103,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi1 = Arrays.asList(oi1_0, oi1_1, oi1_2, oi1_3);
 		
-		orderRepository.save(new Order("Mesa 2", oi1, "prueba"));
+		orderRepository.save(new Order("Mesa 2", oi1, "user1"));
 		
 		OrderItem oi2_0 = new OrderItem(p0, 2);
 		OrderItem oi2_1 = new OrderItem(p1, 1);
@@ -113,7 +118,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi3 = Arrays.asList(oi3_0, oi3_1);
 		
-		orderRepository.save(new Order("Mesa 4", oi3, true, "prueba"));
+		orderRepository.save(new Order("Mesa 4", oi3, true, "user1"));
 		
 		OrderItem oi4_0 = new OrderItem(p0, 5);
 		OrderItem oi4_1 = new OrderItem(p1, 3);

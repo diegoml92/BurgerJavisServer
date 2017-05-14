@@ -5,7 +5,6 @@
 
 package com.burgerjavis;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +30,14 @@ public class CustomBasicAuthenticationProvider implements AuthenticationProvider
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
-		List<User> users = userRepository.findByUsernameIgnoreCase(username);
-		if (users.isEmpty()) {
+		User user = userRepository.findByUsernameIgnoreCase(username);
+		if (user == null) {
 			throw new BadCredentialsException ("User not found");
 		}
-		if (!new BCryptPasswordEncoder().matches(password, users.get(0).getPassword())) {
+		if (!new BCryptPasswordEncoder().matches(password, user.getPassword())) {
 			throw new BadCredentialsException ("Wrong password");
 		}
-		//List<GrantedAuthority> roles = user.getRoles();
-		List<GrantedAuthority> roles = new ArrayList<GrantedAuthority>();
+		List<GrantedAuthority> roles = user.getRoles();
 		return new UsernamePasswordAuthenticationToken(username, password, roles);
 	}
 
