@@ -105,7 +105,7 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
 			}
-			if(currentOrder.isState(OrderState.FINISHED)) {
+			if(!currentOrder.isState(OrderState.INITIAL)) {
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
 			}
 			if(!OrderValidator.validateOrder(order)) {
@@ -147,7 +147,7 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Boolean>(false, HttpStatus.UNAUTHORIZED);
 			}
-			if(currentOrder.isState(OrderState.FINISHED)) {
+			if(!currentOrder.isState(OrderState.INITIAL)) {
 				return new ResponseEntity<Boolean>(false, HttpStatus.FORBIDDEN);
 			}
 			orderRepository.delete(currentOrder);
