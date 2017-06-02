@@ -27,8 +27,14 @@ public class OrderValidator {
 		return valid;
 	}
 	
+	private static boolean validateOrderUsername(String username) {
+		username = username.trim();
+		return ValidationPatterns.USERNAME_PATTERN.matcher(username).matches();
+	}
+	
 	public static boolean validateOrder(Order order) {
-		return validateOrderName(order.getName()) && validateOrderItems(order.getItems());
+		return validateOrderName(order.getName()) && validateOrderItems(order.getItems()) 
+				&& validateOrderUsername(order.getUsername());
 	}
 
 }

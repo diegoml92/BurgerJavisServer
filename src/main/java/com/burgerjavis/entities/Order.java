@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 
+import com.burgerjavis.Common.OrderState;
+
 public class Order {
 
 	@Id
@@ -17,41 +19,41 @@ public class Order {
 	
 	private String name;
 	private List<OrderItem> items;
-	private boolean finished;
+	private OrderState state;
 	private String username;
 		
 	public Order(Order order) {
 		this._id = order._id;
 		this.name = order.name;
 		this.items = order.items;
-		this.finished = order.finished;
+		this.state = order.state;
 		this.username = order.username;
 	}
 	
-	public Order(String name, List<OrderItem> items, boolean finished, String username) {
+	public Order(String name, List<OrderItem> items, OrderState state, String username) {
 		this.name = name;
 		this.items = items;
-		this.finished = finished;
+		this.state = state;
 		this.username = username;
 	}
 	
 	public Order(String name, List<OrderItem> items, String username) {
-		this(name, items, false, username);
+		this(name, items, OrderState.INITIAL, username);
 	}
 	
 	public Order(String name, String username) {
-		this(name, new ArrayList<OrderItem>(), false, username);
+		this(name, new ArrayList<OrderItem>(), username);
 	}
 	
 	public Order() {
-		this("", new ArrayList<OrderItem>(), false, "");
+		this("", "");
 	}
 	
 	
 	public void updateOrder(Order order) {
 		this.name = order.name;
 		this.items = order.items;
-		this.finished = order.finished;
+		this.state = order.state;
 	}
 	
 	public float calculatePrice() {
@@ -60,6 +62,10 @@ public class Order {
 			price += item.getProduct().getPrice() * item.getAmount();
 		}
 		return price;
+	}
+	
+	public boolean isState(OrderState state) {
+		return state.equals(this.state);
 	}
 	
 	public String get_id() {
@@ -86,12 +92,12 @@ public class Order {
 		this.items = items;
 	}
 
-	public boolean isFinished() {
-		return finished;
+	public OrderState getState() {
+		return state;
 	}
 
-	public void setFinished(boolean finished) {
-		this.finished = finished;
+	public void setState(OrderState state) {
+		this.state = state;
 	}
 
 	public String getUsername() {

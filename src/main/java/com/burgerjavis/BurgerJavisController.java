@@ -33,6 +33,8 @@ import com.burgerjavis.validation.CategoryValidator;
 import com.burgerjavis.validation.IngredientValidator;
 import com.burgerjavis.validation.OrderValidator;
 import com.burgerjavis.validation.ProductValidator;
+import com.burgerjavis.Common.OrderState;
+
 
 @RestController
 public class BurgerJavisController {
@@ -58,7 +60,7 @@ public class BurgerJavisController {
 		List<Order> orders = null;
 		try {
 			orders = (List<Order>) orderRepository.
-					findByUsernameIgnoreCaseAndFinishedFalse(principal.getName());
+					findByUsernameIgnoreCaseAndStateIsNot(principal.getName(), OrderState.FINISHED);
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,7 +80,7 @@ public class BurgerJavisController {
 			if(!order.getUsername().equalsIgnoreCase(principal.getName())) {
 				return new ResponseEntity<Order>(order, HttpStatus.UNAUTHORIZED);
 			}
-			if(order.isFinished()) {
+			if(order.isState(OrderState.FINISHED)) {
 				return new ResponseEntity<Order>(order, HttpStatus.FORBIDDEN);
 			}
 			return new ResponseEntity<Order>(order, HttpStatus.OK);
@@ -103,7 +105,7 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
 			}
-			if(currentOrder.isFinished()) {
+			if(currentOrder.isState(OrderState.FINISHED)) {
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
 			}
 			if(!OrderValidator.validateOrder(order)) {
@@ -116,7 +118,7 @@ public class BurgerJavisController {
 				boolean conflict = false;
 				int i=0;
 				while (!conflict && i<conflictingOrders.size()) {
-					conflict = !conflictingOrders.get(i).isFinished();
+					conflict = !conflictingOrders.get(i).isState(OrderState.FINISHED);
 					i++;
 				}
 				if (conflict) {
@@ -145,7 +147,7 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Boolean>(false, HttpStatus.UNAUTHORIZED);
 			}
-			if(currentOrder.isFinished()) {
+			if(currentOrder.isState(OrderState.FINISHED)) {
 				return new ResponseEntity<Boolean>(false, HttpStatus.FORBIDDEN);
 			}
 			orderRepository.delete(currentOrder);
@@ -175,7 +177,7 @@ public class BurgerJavisController {
 			if(orders.size() > 0) {
 				int i = 0;
 				while(create && i < orders.size()) {
-					create = orders.get(i).isFinished();
+					create = orders.get(i).isState(OrderState.FINISHED);
 					i++;
 				}
 			}
@@ -193,7 +195,7 @@ public class BurgerJavisController {
 	// PRODUCT HANDLER
 
 	/* Return product list */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({"ROLE_WAITER", "ROLE_KITCHEN", "ROLE_ADMIN"})
 	@RequestMapping (value = "/products", method = RequestMethod.GET)
 	public ResponseEntity<List<Product>> getProducts() {
 		List<Product> products = null;
@@ -487,7 +489,62 @@ public class BurgerJavisController {
 			return new ResponseEntity<Category>(newCategory, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
+	
+	// KITCHEN HANDLER
+	
+	/* Return order list */
+	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@RequestMapping (value = "/kitchen", method = RequestMethod.GET)
+	public ResponseEntity<List<Order>> getKitchenOrders() {
+		List<Order> orders = null;
+		try {
+			orders = (List<Order>) orderRepository.findByStateIs(OrderState.KITCHEN);
+			return new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<List<Order>>(orders, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/* Return referenced order */
+	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@RequestMapping (value = "/kitchen/{id}", method = RequestMethod.GET)
+	public ResponseEntity<Order> getKitchenOrder(@PathVariable ("id") String id) {
+		Order order = null;
+		try {
+			order = orderRepository.findOne(id);
+			if(order == null) {
+				return new ResponseEntity<Order>(order, HttpStatus.NOT_FOUND);
+			}
+			if(!order.isState(OrderState.KITCHEN)) {
+				return new ResponseEntity<Order>(order, HttpStatus.FORBIDDEN);
+			}
+			return new ResponseEntity<Order>(order, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<Order>(order, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/* Modify existing order */
+	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@RequestMapping (value = "/kitchen/{id}", method = RequestMethod.PUT)
+	public ResponseEntity<Order> modifyKitchenOrder (@PathVariable ("id") String id, @RequestBody Order order) {
+		Order modifiedOrder = null;
+		try {
+			Order currentOrder = orderRepository.findOne(id);
+			if(currentOrder == null) {
+				// Order not found
+				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_FOUND);
+			}
+			if(!currentOrder.isState(OrderState.KITCHEN)) {
+				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
+			}
+			currentOrder.setState(OrderState.SERVED);
+			modifiedOrder = orderRepository.save(currentOrder);
+			return new ResponseEntity<Order>(modifiedOrder, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<Order>(modifiedOrder, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	// SUMMARY HANDLER
 
@@ -497,7 +554,7 @@ public class BurgerJavisController {
 	public ResponseEntity<SummaryData> getSummaryData() {
 		SummaryData data = null;
 		try {
-			List<Order> orders = orderRepository.findByFinishedTrue();
+			List<Order> orders = orderRepository.findByStateIs(OrderState.FINISHED);
 			List<Category> categories = (List<Category>) categoryRepository.findAll();
 			if (orders.size() > 0) {
 				data = new SummaryData(orders, categories);

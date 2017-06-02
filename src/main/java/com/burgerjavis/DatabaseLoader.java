@@ -17,6 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
@@ -52,8 +53,10 @@ public class DatabaseLoader {
 		
 		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority("ROLE_WAITER") };
 		GrantedAuthority [] roles2 = { new SimpleGrantedAuthority("ROLE_ADMIN") };
+		GrantedAuthority [] roles3 = { new SimpleGrantedAuthority("ROLE_KITCHEN") };
 		
 		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles1)));
+		userRepository.save(new User("user2", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles3)));
 		userRepository.save(new User("admin", new BCryptPasswordEncoder().encode("admin"), Arrays.asList(roles2)));
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
@@ -118,7 +121,7 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi3 = Arrays.asList(oi3_0, oi3_1);
 		
-		orderRepository.save(new Order("Mesa 4", oi3, true, "user1"));
+		orderRepository.save(new Order("Mesa 4", oi3, OrderState.FINISHED, "user1"));
 		
 		OrderItem oi4_0 = new OrderItem(p0, 5);
 		OrderItem oi4_1 = new OrderItem(p1, 3);
@@ -129,7 +132,15 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi4 = Arrays.asList(oi4_0, oi4_1, oi4_2, oi4_3, oi4_4, oi4_5);
 		
-		orderRepository.save(new Order("Mesa 5", oi4, true, "admin"));
+		orderRepository.save(new Order("Mesa 5", oi4, OrderState.FINISHED, "admin"));
+		
+		OrderItem oi5_0 = new OrderItem(p0, 5);
+		OrderItem oi5_1 = new OrderItem(p1, 3);
+		OrderItem oi5_2 = new OrderItem(p2, 8);
+		
+		List<OrderItem> oi5 = Arrays.asList(oi5_0, oi5_1, oi5_2);
+		
+		orderRepository.save(new Order("Mesa 6", oi5, OrderState.KITCHEN, "user1"));
 		
 	}
 
