@@ -105,14 +105,17 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
 			}
-			if(!currentOrder.isState(OrderState.INITIAL)) {
+			if(!(currentOrder.isState(OrderState.INITIAL) || currentOrder.isState(OrderState.SERVED))) {
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
 			}
 			if(!OrderValidator.validateOrder(order)) {
 				// Order not valid
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_ACCEPTABLE);
 			}
-			if(!order.getName().equalsIgnoreCase(currentOrder.getName())) {
+			if(currentOrder.isState(OrderState.SERVED)) {
+				order = currentOrder;
+				order.setState(OrderState.FINISHED);
+			}else if(!order.getName().equalsIgnoreCase(currentOrder.getName())) {
 				// Name has been modified, check if new name is available
 				List<Order> conflictingOrders = orderRepository.findByNameIgnoreCase(order.getName());
 				boolean conflict = false;
@@ -147,7 +150,7 @@ public class BurgerJavisController {
 				// Unauthorized user
 				return new ResponseEntity<Boolean>(false, HttpStatus.UNAUTHORIZED);
 			}
-			if(!currentOrder.isState(OrderState.INITIAL)) {
+			if(currentOrder.isState(OrderState.FINISHED)) {
 				return new ResponseEntity<Boolean>(false, HttpStatus.FORBIDDEN);
 			}
 			orderRepository.delete(currentOrder);

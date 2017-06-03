@@ -348,11 +348,43 @@ public class BurgerJavisServerControllerTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotAcceptable());
 		
+		// Create new orders
+		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME);
+		Order order7 = new Order("Order 7", new ArrayList<OrderItem>(), OrderState.SERVED, USERNAME2);
+		order3 = orderRepository.save(order6);
+		order4 = orderRepository.save(order7);
+		
+		Order modifiedOrder4 = new Order(order6);
+		modifiedOrder4.setName("Modified order 4");
+		
+		// Order with given id exists and belongs to "user1", but its state is invalid
+		mockMvc.perform(put("/orders/" + order6.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		Order modifiedOrder5 = new Order(order7);
+		modifiedOrder5.setName("Modified order 5");
+		
+		// Order with given id exists and belongs to "admin"
+		mockMvc.perform(put("/orders/" + order7.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$._id", is(order7.get_id())))
+			.andExpect(jsonPath("$.name", is(order7.getName())))
+			.andExpect(jsonPath("$.items", hasSize(order7.getItems().size())))
+			.andExpect(jsonPath("$.state", is(OrderState.FINISHED.name())))
+			.andExpect(jsonPath("$.username",  is(order7.getUsername())));
+		
+		
 		// Only orders belonging to "user1" that are not finished are returned
 		mockMvc.perform(get("/orders").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$", hasSize(1)));
+			.andExpect(jsonPath("$", hasSize(2)));
 	
 	}
 

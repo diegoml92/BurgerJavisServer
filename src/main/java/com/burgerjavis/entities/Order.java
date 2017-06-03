@@ -54,6 +54,7 @@ public class Order {
 		this.name = order.name;
 		this.items = order.items;
 		this.state = order.state;
+		this.username = order.username;
 	}
 	
 	public float calculatePrice() {
