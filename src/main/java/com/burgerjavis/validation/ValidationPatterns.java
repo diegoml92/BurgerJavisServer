@@ -9,6 +9,9 @@ import java.util.regex.Pattern;
 
 public final class ValidationPatterns {
 	
+	public static final Pattern USERNAME_PATTERN =
+			Pattern.compile("[a-zA-ZñÑ0-9]+");
+	
 	public static final Pattern ORDER_NAME_PATTERN = 
 			Pattern.compile("[a-zA-ZñÑ0-9][a-zA-ZñÑ 0-9]*");
 	

@@ -26,13 +26,16 @@ public class UnitTestUtil {
 	public static final double DELTA_ERROR = 0.0001;
 	
 	// ROLES
-	public static enum UserRole {ROLE_ADMIN, ROLE_WAITER};
+	public static enum UserRole {ROLE_ADMIN, ROLE_WAITER, ROLE_KITCHEN};
 	
 	private static final GrantedAuthority[] ADMIN = {new SimpleGrantedAuthority("ROLE_ADMIN")};
 	private static final List<GrantedAuthority> ADMIN_ROLE = Arrays.asList(ADMIN);
 	
 	private static final GrantedAuthority[] WAITER = {new SimpleGrantedAuthority("ROLE_WAITER")};
 	private static final List<GrantedAuthority> WAITER_ROLE = Arrays.asList(WAITER);
+	
+	private static final GrantedAuthority[] KITCHEN = {new SimpleGrantedAuthority("ROLE_KITCHEN")};
+	private static final List<GrantedAuthority> KITCHEN_ROLE = Arrays.asList(KITCHEN);
 	
 	// AUXILIARY METHODS
 	public static String convertObjectToJson (Object object) {
@@ -45,6 +48,7 @@ public class UnitTestUtil {
 		switch (role) {
 			case ROLE_ADMIN: roles = ADMIN_ROLE; break;
 			case ROLE_WAITER: roles = WAITER_ROLE; break;
+			case ROLE_KITCHEN: roles = KITCHEN_ROLE; break;
 			default: roles = new ArrayList<GrantedAuthority>();
 		}
 		return new User(username, new BCryptPasswordEncoder().encode(password), roles);

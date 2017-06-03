@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
@@ -97,17 +98,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/orders").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/orders").with(httpBasicHeaderUser2))
+		.andExpect(status().isForbidden());
 		
 		mockMvc.perform(get("/orders").with(httpBasicHeaderAdmin))
 		.andExpect(status().isOk())
@@ -122,9 +131,9 @@ public class BurgerJavisServerControllerTest {
 		
 		//Initialize database
 		Order order1 = new Order("Order 1", USERNAME);
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME);
 		Order order3 = new Order("Order 3", USERNAME2);
-		Order order4 = new Order("Order 4", new ArrayList<OrderItem>(), true, USERNAME2);
+		Order order4 = new Order("Order 4", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME2);
 		orderRepository.save(order1);
 		orderRepository.save(order2);
 		orderRepository.save(order3);
@@ -138,7 +147,7 @@ public class BurgerJavisServerControllerTest {
         	.andExpect(jsonPath("$[0]._id", is(order1.get_id())))
         	.andExpect(jsonPath("$[0].name", is(order1.getName())))
         	.andExpect(jsonPath("$[0].items", hasSize(order1.getItems().size())))
-        	.andExpect(jsonPath("$[0].finished", is(order1.isFinished())))
+        	.andExpect(jsonPath("$[0].state", is(order1.getState().name())))
         	.andExpect(jsonPath("$[0].username",  is(order1.getUsername())));
 		
 		// Only orders belonging to "admin" that are not finished are returned
@@ -149,7 +158,7 @@ public class BurgerJavisServerControllerTest {
 	    	.andExpect(jsonPath("$[0]._id", is(order3.get_id())))
 	    	.andExpect(jsonPath("$[0].name", is(order3.getName())))
 	    	.andExpect(jsonPath("$[0].items", hasSize(order3.getItems().size())))
-	    	.andExpect(jsonPath("$[0].finished", is(order3.isFinished())))
+	    	.andExpect(jsonPath("$[0].state", is(order3.getState().name())))
 	    	.andExpect(jsonPath("$[0].username",  is(order3.getUsername())));
 
 	}
@@ -162,13 +171,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
-		RequestPostProcessor httpBasicHeader = httpBasic(user1.getUsername(), PASSWORD);
+		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/orders/thisIdDoesNotExist").with(httpBasicHeader))
@@ -177,11 +191,13 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(status().isNotFound());
 		mockMvc.perform(get("/orders/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/orders/thisIdDoesNotExist").with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
 		// End Authentication-Authorization
 		
 		//Initialize database
 		Order order1 = new Order("Order 1", USERNAME);
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME);
 		Order order3 = new Order("Order 3", USERNAME2);
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
@@ -194,7 +210,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(jsonPath("$._id", is(order1.get_id())))
 			.andExpect(jsonPath("$.name", is(order1.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order1.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order1.isFinished())))
+			.andExpect(jsonPath("$.state", is(order1.getState().name())))
 			.andExpect(jsonPath("$.username",  is(order1.getUsername())));
 		
 		// Order belongs to "user1" but is already finished
@@ -215,44 +231,55 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
-		mockMvc.perform(get("/orders/thisIdDoesNotExist")
+		mockMvc.perform(put("/orders/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Order()))
 					.with(httpBasicHeader))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/orders/thisIdDoesNotExist")
+		mockMvc.perform(put("/orders/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Order()))
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
 		
-		mockMvc.perform(get("/orders/thisIdDoesNotExist")
+		mockMvc.perform(put("/orders/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Order()))
 					.with(wrongHeader))
 			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(put("/orders/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
 		// End Authentication-Authorization
 		
 		//Initialize database
 		Order order1 = new Order("Order 1", USERNAME);
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, USERNAME2);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME2);
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
 		// Modify order1
 		Order modifiedOrder1 = new Order(order1);
 		modifiedOrder1.setName("New order");
-		modifiedOrder1.setFinished(true);
+		modifiedOrder1.setState(OrderState.FINISHED);
 		
 		// Order id does not exist
 		mockMvc.perform(put("/orders/thisIdDoesNotExist")
@@ -270,7 +297,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(jsonPath("$._id", is(order1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedOrder1.getName())))
 			.andExpect(jsonPath("$.items", hasSize(modifiedOrder1.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(modifiedOrder1.isFinished())))
+			.andExpect(jsonPath("$.state", is(modifiedOrder1.getState().name())))
 			.andExpect(jsonPath("$.username",  is(modifiedOrder1.getUsername())));
 		
 		// None of the orders belonging to "user1" are active
@@ -280,7 +307,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(jsonPath("$", hasSize(0)));
 		
 		// Create new orders
-		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), true, USERNAME);
+		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME);
 		Order order4 = new Order("Order 4", USERNAME2);
 		Order order5 = new Order("Order 5", USERNAME);
 		order3 = orderRepository.save(order3);
@@ -321,11 +348,43 @@ public class BurgerJavisServerControllerTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotAcceptable());
 		
+		// Create new orders
+		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME);
+		Order order7 = new Order("Order 7", new ArrayList<OrderItem>(), OrderState.SERVED, USERNAME2);
+		order3 = orderRepository.save(order6);
+		order4 = orderRepository.save(order7);
+		
+		Order modifiedOrder4 = new Order(order6);
+		modifiedOrder4.setName("Modified order 4");
+		
+		// Order with given id exists and belongs to "user1", but its state is invalid
+		mockMvc.perform(put("/orders/" + order6.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		Order modifiedOrder5 = new Order(order7);
+		modifiedOrder5.setName("Modified order 5");
+		
+		// Order with given id exists and belongs to "admin"
+		mockMvc.perform(put("/orders/" + order7.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedOrder1))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$._id", is(order7.get_id())))
+			.andExpect(jsonPath("$.name", is(order7.getName())))
+			.andExpect(jsonPath("$.items", hasSize(order7.getItems().size())))
+			.andExpect(jsonPath("$.state", is(OrderState.FINISHED.name())))
+			.andExpect(jsonPath("$.username",  is(order7.getUsername())));
+		
+		
 		// Only orders belonging to "user1" that are not finished are returned
 		mockMvc.perform(get("/orders").with(httpBasicHeader))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$", hasSize(1)));
+			.andExpect(jsonPath("$", hasSize(2)));
 	
 	}
 
@@ -337,13 +396,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(delete("/orders/thisIdDoesNotExist").with(httpBasicHeader))
@@ -352,11 +416,13 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(status().isNotFound());
 		mockMvc.perform(delete("/orders/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
+		mockMvc.perform(delete("/orders/thisIdDoesNotExist").with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
 		// End Authentication-Authorization
 		
 		//Initialize database
 		Order order1 = new Order("Order 1", USERNAME);
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME);
 		Order order3 = new Order("Order 3", USERNAME2);
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
@@ -390,13 +456,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(post("/orders/")
@@ -414,11 +485,16 @@ public class BurgerJavisServerControllerTest {
 				.content(UnitTestUtil.convertObjectToJson(new Order()))
 					.with(wrongHeader))
 			.andExpect(status().isUnauthorized());
+		mockMvc.perform(post("/orders/")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
 		// End Authentication-Authorization
 		
 		//Initialize database
 		Order order1 = new Order("Order 1", USERNAME);
-		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), true, USERNAME2);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME2);
 		order1 = orderRepository.save(order1);
 		order2 = orderRepository.save(order2);
 		
@@ -440,7 +516,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.name", is(order4.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order4.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order4.isFinished())))
+			.andExpect(jsonPath("$.state", is(order4.getState().name())))
 			.andExpect(jsonPath("$.username",  is(order4.getUsername())));
 		
 		// The order name contains invalid characters
@@ -452,7 +528,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(status().isNotAcceptable());
 		
 		// An order with this name already exists, but it is finished
-		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), true, USERNAME);
+		Order order6 = new Order("Order 6", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME);
 		mockMvc.perform(post("/orders/")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(order6))
@@ -461,7 +537,7 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.name", is(order6.getName())))
 			.andExpect(jsonPath("$.items", hasSize(order6.getItems().size())))
-			.andExpect(jsonPath("$.finished", is(order6.isFinished())))
+			.andExpect(jsonPath("$.state", is(order6.getState().name())))
 			.andExpect(jsonPath("$.username",  is(order6.getUsername())));
 
 	}
@@ -476,16 +552,26 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/products").with(httpBasicHeader))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$", hasSize(0)));
+		
+		mockMvc.perform(get("/products").with(httpBasicHeaderUser2))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
@@ -529,18 +615,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/products/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
 		mockMvc.perform(get("/products/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/products/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/products/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -571,13 +664,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(put("/products/thisIdDoesNotExist")
@@ -590,6 +688,12 @@ public class BurgerJavisServerControllerTest {
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Product()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		mockMvc.perform(put("/products/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Product()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		
 		mockMvc.perform(put("/products/thisIdDoesNotExist")
@@ -689,18 +793,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
 		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(delete("/products/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -732,13 +843,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(post("/products")
@@ -750,6 +866,11 @@ public class BurgerJavisServerControllerTest {
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Product()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(post("/products")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Product()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(post("/products")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
@@ -813,13 +934,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/ingredients").with(httpBasicHeaderAdmin))
@@ -827,6 +953,8 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
 		mockMvc.perform(get("/ingredients").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/ingredients").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/ingredients").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -859,18 +987,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
 		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/ingredients/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -899,13 +1034,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(put("/ingredients/thisIdDoesNotExist")
@@ -917,6 +1057,11 @@ public class BurgerJavisServerControllerTest {
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Ingredient()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(put("/ingredients/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Ingredient()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(put("/ingredients/thisIdDoesNotExist")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
@@ -1008,19 +1153,27 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
 		
 		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		
 		mockMvc.perform(delete("/ingredients/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
@@ -1055,19 +1208,29 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(post("/ingredients")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Ingredient()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(post("/ingredients")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Ingredient()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(post("/ingredients")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
@@ -1131,13 +1294,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/categories").with(httpBasicHeaderAdmin))
@@ -1145,6 +1313,8 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(0)));
 		mockMvc.perform(get("/categories").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/categories").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/categories").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -1180,18 +1350,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
 		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/categories/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
@@ -1222,13 +1399,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(put("/categories/thisIdDoesNotExist")
@@ -1241,6 +1423,12 @@ public class BurgerJavisServerControllerTest {
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Category()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		mockMvc.perform(put("/categories/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Category()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		
 		mockMvc.perform(put("/categories/thisIdDoesNotExist")
@@ -1343,18 +1531,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
 		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(delete("/categories/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotFound());
@@ -1389,13 +1584,18 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(post("/categories")
@@ -1408,6 +1608,12 @@ public class BurgerJavisServerControllerTest {
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(new Category()))
 					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		mockMvc.perform(post("/categories")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Category()))
+					.with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		
 		mockMvc.perform(post("/categories")
@@ -1457,18 +1663,25 @@ public class BurgerJavisServerControllerTest {
 		final String PASSWORD = "pass";
 		final String USERNAME2 = "admin";
 		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
 		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
 		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
 		userRepository.save(user1);
 		userRepository.save(admin);
+		userRepository.save(user2);
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
 		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
 		
 		mockMvc.perform(get("/summary").with(wrongHeader))
 			.andExpect(status().isUnauthorized());
 		mockMvc.perform(get("/summary").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/summary").with(httpBasicHeaderUser2))
 			.andExpect(status().isForbidden());
 		mockMvc.perform(get("/summary").with(httpBasicHeaderAdmin))
 			.andExpect(status().isNoContent());
@@ -1540,7 +1753,7 @@ public class BurgerJavisServerControllerTest {
 		
 		List<OrderItem> oi3 = Arrays.asList(oi3_0, oi3_1);
 		
-		orderRepository.save(new Order("Mesa 4", oi3, true, "user1"));
+		orderRepository.save(new Order("Mesa 4", oi3, OrderState.FINISHED, "user1"));
 		
 		OrderItem oi4_0 = new OrderItem(p0, 5);
 		OrderItem oi4_1 = new OrderItem(p1, 3);
@@ -1551,7 +1764,7 @@ public class BurgerJavisServerControllerTest {
 		
 		List<OrderItem> oi4 = Arrays.asList(oi4_0, oi4_1, oi4_2, oi4_3, oi4_4, oi4_5);
 		
-		orderRepository.save(new Order("Mesa 5", oi4, true, "user2"));
+		orderRepository.save(new Order("Mesa 5", oi4, OrderState.FINISHED, "user2"));
 		
 		// Check retrieved summary data is correct
 		mockMvc.perform(get("/summary").with(httpBasicHeaderAdmin))
@@ -1567,6 +1780,201 @@ public class BurgerJavisServerControllerTest {
 			.andExpect(jsonPath("$.topProducts[4]", hasSize(2)));
 		
 	}
+	
+	@Test
+	public void testGetKitchenOrders() throws Exception {
+		
+		// Authentication-Authorization
+		final String USERNAME = "user1";
+		final String PASSWORD = "pass";
+		final String USERNAME2 = "admin";
+		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
+		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
+		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
+		userRepository.save(user1);
+		userRepository.save(admin);
+		userRepository.save(user2);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
+		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
+		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
+		
+		mockMvc.perform(get("/kitchen").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(get("/kitchen").with(httpBasicHeader))
+		.andExpect(status().isForbidden());
+		
+		mockMvc.perform(get("/kitchen").with(httpBasicHeaderAdmin))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$", hasSize(0)));
+		
+		mockMvc.perform(get("/kitchen").with(httpBasicHeaderUser2))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+    		.andExpect(jsonPath("$", hasSize(0)));
+		// End Authentication-Authorization
+		
+		//Initialize database
+		Order order1 = new Order("Order 1", new ArrayList<OrderItem>(), OrderState.INITIAL, USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME);
+		Order order3 = new Order("Order 3", new ArrayList<OrderItem>(), OrderState.FINISHED, USERNAME2);
+		Order order4 = new Order("Order 4", new ArrayList<OrderItem>(), OrderState.SERVED, USERNAME2);
+		Order order5 = new Order("Order 5", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME2);
+		orderRepository.save(order1);
+		orderRepository.save(order2);
+		orderRepository.save(order3);
+		orderRepository.save(order4);
+		orderRepository.save(order5);
+		
+		// Only orders in KITCHEN state are returned
+		mockMvc.perform(get("/kitchen").with(httpBasicHeaderUser2))
+        	.andExpect(status().isOk())
+        	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+        	.andExpect(jsonPath("$", hasSize(2)))
+        	.andExpect(jsonPath("$[0]._id", is(order2.get_id())))
+        	.andExpect(jsonPath("$[0].name", is(order2.getName())))
+        	.andExpect(jsonPath("$[0].items", hasSize(order2.getItems().size())))
+        	.andExpect(jsonPath("$[0].state", is(order2.getState().name())))
+        	.andExpect(jsonPath("$[0].username",  is(order2.getUsername())))
+        	.andExpect(jsonPath("$[1]._id", is(order5.get_id())))
+        	.andExpect(jsonPath("$[1].name", is(order5.getName())))
+        	.andExpect(jsonPath("$[1].items", hasSize(order5.getItems().size())))
+        	.andExpect(jsonPath("$[1].state", is(order5.getState().name())))
+        	.andExpect(jsonPath("$[1].username",  is(order5.getUsername())));
+	
+	}
+	
+	@Test
+	public void testGetKitchen() throws Exception {
+		
+		// Authentication-Authorization
+		final String USERNAME = "user1";
+		final String PASSWORD = "pass";
+		final String USERNAME2 = "admin";
+		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
+		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
+		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
+		userRepository.save(user1);
+		userRepository.save(admin);
+		userRepository.save(user2);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
+		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
+		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
+		
+		mockMvc.perform(get("/kitchen/thisIdDoesNotExist").with(httpBasicHeaderUser2))
+			.andExpect(status().isNotFound());
+		mockMvc.perform(get("/kitchen/thisIdDoesNotExist").with(httpBasicHeaderAdmin))
+			.andExpect(status().isNotFound());
+		mockMvc.perform(get("/kitchen/thisIdDoesNotExist").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/kitchen/thisIdDoesNotExist").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		// End Authentication-Authorization
+		
+		//Initialize database
+		Order order1 = new Order("Order 1", USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME2);
+		order1 = orderRepository.save(order1);
+		order2 = orderRepository.save(order2);
+		
+		// Order with given id exists and is in KITCHEN state
+		mockMvc.perform(get("/kitchen/" + order2.get_id()).with(httpBasicHeaderUser2))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$._id", is(order2.get_id())))
+			.andExpect(jsonPath("$.name", is(order2.getName())))
+			.andExpect(jsonPath("$.items", hasSize(order2.getItems().size())))
+			.andExpect(jsonPath("$.state", is(order2.getState().name())))
+			.andExpect(jsonPath("$.username",  is(order2.getUsername())));
+		
+		// Order is not in KITCHEN state
+		mockMvc.perform(get("/kitchen/" + order1.get_id()).with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
+
+	}
+	
+	@Test
+	public void testModifyKitchen() throws Exception {
+		
+		// Authentication-Authorization
+		final String USERNAME = "user1";
+		final String PASSWORD = "pass";
+		final String USERNAME2 = "admin";
+		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
+		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
+		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
+		userRepository.save(user1);
+		userRepository.save(admin);
+		userRepository.save(user2);
+		
+		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
+		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
+		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
+		
+		mockMvc.perform(put("/kitchen/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(httpBasicHeaderUser2))
+			.andExpect(status().isNotFound());
+		
+		mockMvc.perform(put("/kitchen/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isNotFound());
+		
+		mockMvc.perform(put("/kitchen/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		
+		mockMvc.perform(put("/kitchen/thisIdDoesNotExist")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(new Order()))
+					.with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		
+		//Initialize database
+		Order order1 = new Order("Order 1", USERNAME);
+		Order order2 = new Order("Order 2", new ArrayList<OrderItem>(), OrderState.KITCHEN, USERNAME2);
+		order1 = orderRepository.save(order1);
+		order2 = orderRepository.save(order2);
+		
+		// Order with given id exists but is not in KITCHEN state
+		mockMvc.perform(put("/kitchen/" + order1.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(order1))
+					.with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
+		
+		// Order with given id exists and is in KITCHEN state
+		mockMvc.perform(put("/kitchen/" + order2.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(order2))
+					.with(httpBasicHeaderUser2))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$._id", is(order2.get_id())))
+			.andExpect(jsonPath("$.name", is(order2.getName())))
+			.andExpect(jsonPath("$.items", hasSize(order2.getItems().size())))
+			.andExpect(jsonPath("$.state", is(OrderState.SERVED.name())))
+			.andExpect(jsonPath("$.username",  is(order2.getUsername())));
+}
 	
 	@Test
 	public void testGetUser() throws Exception {
