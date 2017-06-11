@@ -27,7 +27,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure (HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-			.antMatchers("/users/*").permitAll()
+			.antMatchers("/").permitAll()
+			.antMatchers("/login").permitAll()
+			.antMatchers("/webclient/*").permitAll()
+			.antMatchers("/appclient/users/*").permitAll()
 			.anyRequest().authenticated();
 		http.csrf().disable()
 			.httpBasic().realmName(Common.REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
