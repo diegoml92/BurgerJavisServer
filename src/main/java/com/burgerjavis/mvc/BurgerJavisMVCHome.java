@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-public class BurgerJavisMVCLogin {
+public class BurgerJavisMVCHome {
 	
-	@RequestMapping ({"/webclient/login"})
+	@RequestMapping ({"/", "/webclient/home"})
 	public ModelAndView loginPage() {
-		return new ModelAndView("login");
+		return new ModelAndView("index");
 	} 
 
 }

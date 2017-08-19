@@ -6,35 +6,29 @@
 package com.burgerjavis;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 
 @EnableGlobalMethodSecurity (securedEnabled = true)
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+@Order(2)
+public class SecurityConfigurationWebClient extends WebSecurityConfigurerAdapter {
 	
 	@Autowired
 	public CustomBasicAuthenticationProvider authenticationProvider;
 	
-	@Bean
-    public CustomBasicAuthenticationEntryPoint getBasicAuthEntryPoint(){
-        return new CustomBasicAuthenticationEntryPoint();
-    }
-	
 	@Override
 	protected void configure (HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-			.antMatchers("/").permitAll()
-			.antMatchers("/login").permitAll()
-			.antMatchers("/webclient/*").permitAll()
-			.antMatchers("/appclient/users/*").permitAll()
+			.antMatchers("/webclient/login").permitAll()
 			.anyRequest().authenticated();
-		http.csrf().disable()
-			.httpBasic().realmName(Common.REALM).authenticationEntryPoint(getBasicAuthEntryPoint())
-	        .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		http.formLogin().loginPage("/webclient/login").defaultSuccessUrl("/", true)
+			.failureUrl("/webclient/login?error").permitAll();
+		
+		http.logout().logoutUrl("/webclient/logout").logoutSuccessUrl("/webclient/login?logout").permitAll();
 	}
 	
 	@Override
