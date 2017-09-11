@@ -23,7 +23,7 @@ public class SecurityConfigurationWebClient extends WebSecurityConfigurerAdapter
 	protected void configure (HttpSecurity http) throws Exception {
 		http.authorizeRequests()
 			.antMatchers("/webclient/login").permitAll()
-			.anyRequest().authenticated();
+			.anyRequest().hasRole("ADMIN");
 		
 		http.formLogin().loginPage("/webclient/login").defaultSuccessUrl("/", true)
 			.failureUrl("/webclient/login?error").permitAll();
