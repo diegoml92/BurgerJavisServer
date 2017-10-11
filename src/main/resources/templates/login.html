@@ -12,9 +12,10 @@
     <title>Burger Javi's - Inicio de sesión</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"></link>
+    <link th:href="@{/webjars/bootstrap/3.3.7/css/bootstrap.min.css}" rel="stylesheet"></link>
 
     <!-- Custom styles for this template -->
+    <link th:href="@{/css/common.css}" rel="stylesheet"></link>
     <link th:href="@{/css/login.css}" rel="stylesheet"></link>
 
   </head>
@@ -24,8 +25,6 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          </button>
           <a class="navbar-brand" th:href="@{/}">Burger Javi's Administración</a>
         </div>
       </div>
@@ -55,15 +54,20 @@
               </form>
             </div>
           </div>
+          <div th:if="${(param.error)}" class="alert alert-danger">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+            <strong>No se pudo iniciar sesión: </strong>Por favor, compruebe los datos introducidos.
+          </div>
+          <div th:if="${(param.logout)}" class="alert alert-info">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+            <strong>Se ha cerrado la sesión</strong>
+          </div>
         </div>
       </div>
     </div>
-
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!--
-    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
-    -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script th:src="@{/webjars/bootstrap/3.3.7/js/bootstrap.min.js}"></script>
     
   </body>
 </html>

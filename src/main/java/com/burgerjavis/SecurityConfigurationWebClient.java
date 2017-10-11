@@ -29,6 +29,8 @@ public class SecurityConfigurationWebClient extends WebSecurityConfigurerAdapter
 			.failureUrl("/webclient/login?error").permitAll();
 		
 		http.logout().logoutUrl("/webclient/logout").logoutSuccessUrl("/webclient/login?logout").permitAll();
+		
+		http.csrf().disable();
 	}
 	
 	@Override

@@ -12,9 +12,10 @@
     <title>Burger Javi's - Error 404</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"></link>
+    <link th:href="@{/webjars/bootstrap/3.3.7/css/bootstrap.min.css}" rel="stylesheet"></link>
 
     <!-- Custom styles for this template -->
+    <link th:href="@{/css/common.css}" rel="stylesheet"></link>
     <link th:href="@{/css/error.css}" rel="stylesheet"></link>
 
   </head>
@@ -31,13 +32,13 @@
       </div>
     </nav>
     
-    <h2>NO EXISTE LA PÁGINA SOLICITADA</h2>
-
+    <div class="error-msg">
+      <h2>Error 404</h2>
+      <h3>La página solicitada no existe</h3>
+    </div>
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!--
-    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
-    -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script th:src="@{/webjars/bootstrap/3.3.7/js/bootstrap.min.js}"></script>
     
   </body>
 </html>
