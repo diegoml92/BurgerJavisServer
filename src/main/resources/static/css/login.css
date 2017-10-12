@@ -1,3 +1,7 @@
 .vertical-offset-100{
     padding-top: 30px;
 }
+
+.card-block {
+	padding : 50px;
+}

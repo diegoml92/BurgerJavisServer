@@ -1,3 +1,14 @@
+
+body {
+  padding-top: 3.5rem;
+}
+
+h1 {
+  margin-bottom: 20px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #eee;
+}
+
 .sidebar {
   position: fixed;
   top: 51px;
@@ -31,6 +42,11 @@
   border-radius: 0;
 }
 
-img {
-	border-radius: 100%;
+.placeholders {
+  padding-bottom: 3rem;
+}
+
+.placeholder img {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
 }
