@@ -67,4 +67,16 @@ public class User {
 		this.roles = roles;
 	}
 	
+	public boolean hasWaiterRole () {
+		final String C_ROLE_WAITER = "ROLE_WAITER";
+		final String C_ROLE_ADMIN = "ROLE_ADMIN";
+		for (GrantedAuthority role : this.roles) {
+			String roleAuth = role.getAuthority();
+			if (roleAuth.equalsIgnoreCase(C_ROLE_WAITER) || roleAuth.equalsIgnoreCase(C_ROLE_ADMIN)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

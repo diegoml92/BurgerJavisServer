@@ -19,6 +19,15 @@ public class SummaryData {
 	private List<Category> topCategories;
 	private List<List<TopProduct>> topProducts;
 	
+	private int counter = 0;
+	
+	public SummaryData() {
+		this.completedOrders = 0;
+		this.profits = 0.0f;
+		this.topCategories = new ArrayList<Category>();
+		this.topProducts = new ArrayList<List<TopProduct>>();
+	}
+	
 	public SummaryData(List<Order> orders, List<Category> categories) {
 		this.completedOrders = orders.size();
 		this.profits = 0.0f;
@@ -79,6 +88,14 @@ public class SummaryData {
 				this.topProducts.get(index).sort((p1,p2) -> p2.getAmount() - p1.getAmount());
 			}
 		}
+	}
+	
+	public void resetCounter() {
+		this.counter = 0;
+	}
+	
+	public int getNextCounter() {
+		return this.counter++;
 	}
 
 	public float getProfits() {

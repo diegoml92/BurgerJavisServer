@@ -50,11 +50,11 @@
               </form>
             </div>
           </div>
-          <div th:if="${(param.error)}" class="alert alert-danger">
+          <div th:if="${(param.error)}" class="alert alert-danger mt-3">
             <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
             <strong>No se pudo iniciar sesión: </strong>Por favor, compruebe los datos introducidos.
           </div>
-          <div th:if="${(param.logout)}" class="alert alert-info">
+          <div th:if="${(param.logout)}" class="alert alert-info mt-3">
             <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
             <strong>Se ha cerrado la sesión</strong>
           </div>
