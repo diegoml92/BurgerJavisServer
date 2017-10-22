@@ -40,44 +40,86 @@
     <div class="container-fluid">
       <div class="row">
         <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
-          <ul class="nav nav-pills flex-column">
+          <ul class="nav nav-pills flex-column" role="tablist">
             <li class="nav-item">
-              <a class="nav-link active" href="#">Sumario <span class="sr-only">(current)</span></a>
+              <a class="nav-link active" data-toggle="pill" href="#summary" role="tab">Sumario</a>
             </li>
-            <li th:each="user : ${users}" th:if="${user.hasWaiterRole()}" class="nav-item">
-              <a class="nav-link" th:text="${user.getUsername()}" href="#"></a>
+            <li th:each="user : ${users}" class="nav-item">
+              <a class="nav-link" data-toggle="pill" th:text="${user.getUsername()}" 
+              		th:href="'#' + ${user.getUsername()}" role="tab"></a>
             </li>
           </ul>
         </nav>
 
-        <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
-          <div class="summary-container">
-            <h1>Sumario</h1>
-            <section class="row text-center placeholders">
-              <div class="col-6 placeholder">
-                <h1 class="text-muted"><span class="stats-counter" th:text="${data.getProfits()}"></span>€</h1>
-                <span>Beneficios</span>
-              </div>
-              <div class="col-6 placeholder">
-                <h1 class="text-muted"><span class="stats-counter" th:text="${data.getCompletedOrders()}"></span></h1>
-                <span>Pedidos completados</span>
-              </div>
-            </section>
-          </div>
+        <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 tab-content" role="main">
+          <div class="tab-pane fade show active" id="summary" role="tabpanel">
+            <div>
+              <h1>Sumario</h1>
+              <section class="row text-center placeholders">
+                <div class="col-6 placeholder">
+                  <h1 class="text-muted"><span class="stats-counter" 
+                  		th:text="${#numbers.formatDecimal(data.getProfits(),0,'DEFAULT',2,'DEFAULT')}"></span>€</h1>
+                  <span>Beneficios</span>
+                </div>
+                <div class="col-6 placeholder">
+                  <h1 class="text-muted"><span class="stats-counter" th:text="${data.getCompletedOrders()}"></span></h1>
+                  <span>Pedidos completados</span>
+                </div>
+              </section>
+            </div>
 
-          <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=${data.resetCounter()}" class="top-products-container">
-            <h1>Productos más vendidos</h1>
-            <ul class="list-group">
-              <li class="list-group-item" th:each="category : ${data.getTopCategories()}">
-                <h3 th:text="${category.getName()}"></h3>
-                <ul class="list-group">
-                  <li class="list-group-item" th:each="product : ${data.getTopProducts().get(data.getNextCounter())}">
-                    <span th:text="${product.getProductName()}"></span>
-                    <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
-                  </li>
-                </ul>
-              </li>
-            </ul>
+            <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=${data.resetCounter()}" class="top-products-container">
+              <h1>Productos más vendidos</h1>
+              <ul class="list-group">
+                <li class="list-group-item" th:each="category : ${data.getTopCategories()}">
+                  <h3 th:text="${category.getName()}"></h3>
+                  <ul class="list-group">
+                    <li class="list-group-item" th:each="product : ${data.getTopProducts().get(data.getNextCounter())}">
+                      <span th:text="${product.getProductName()}"></span>
+                      <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div th:each="user : ${users}" class="tab-pane fade active" th:with="username=${user.getUsername()}"
+          		th:id="${username}" role="tabpanel">
+          	<div>
+              <h1 th:text="'Sumario [' + ${username} + ']'"></h1>
+              <section class="row text-center placeholders">
+                <div class="col-6 placeholder">
+                  <h1 class="text-muted">
+                  	<span class="stats-counter" 
+                  			th:text="${#numbers.formatDecimal(data.getUserData(username).getProfits(),0,'DEFAULT',2,'DEFAULT')}"></span>€
+                  </h1>
+                  <span>Beneficios</span>
+                </div>
+                <div class="col-6 placeholder">
+                  <h1 class="text-muted">
+                  	<span class="stats-counter" th:text="${data.getUserData(username).getCompletedOrders()}"></span>
+                  </h1>
+                  <span>Pedidos completados</span>
+                </div>
+              </section>
+            </div>
+
+            <div th:if="${!data.getUserData(username).getTopCategories().isEmpty()}" 
+            		th:with="index=${data.getUserData(username).resetCounter()}" class="top-products-container">
+              <h1>Productos más vendidos</h1>
+              <ul class="list-group">
+                <li class="list-group-item" th:each="category : ${data.getUserData(username).getTopCategories()}">
+                  <h3 th:text="${category.getName()}"></h3>
+                  <ul class="list-group">
+                    <li class="list-group-item" th:each="product : ${data.getUserData(username).getTopProducts()
+                    		.get(data.getUserData(username).getNextCounter())}">
+                      <span th:text="${product.getProductName()}"></span>
+                      <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
           </div>
         </main>
       </div>
@@ -86,7 +128,8 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script th:src="@{/webjars/bootstrap/4.4.0-beta-1/js/bootstrap.min.js}"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script th:src="@{/webjars/jquery/3.2.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/1.12.5/dist/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.0.0-beta-1/js/bootstrap.min.js}"></script>
   </body>
 </html>

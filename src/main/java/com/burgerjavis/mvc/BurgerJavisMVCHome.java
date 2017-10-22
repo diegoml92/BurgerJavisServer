@@ -5,6 +5,7 @@
 
 package com.burgerjavis.mvc;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +34,22 @@ public class BurgerJavisMVCHome {
 	
 	@RequestMapping ({"/", "/webclient/home"})
 	public ModelAndView loginPage() {
-		List<User> users  = (List<User>) userRepository.findAll();
-		SummaryData data = new SummaryData();
+		SummaryData data;
 		List<Order> orders = orderRepository.findByStateIs(OrderState.FINISHED);
 		List<Category> categories = (List<Category>) categoryRepository.findAll();
-		if (orders.size() > 0) {
-			data = new SummaryData(orders, categories);
+		data = orders.size() > 0 ? new SummaryData(orders, categories) : new SummaryData();
+		List<User> allUsers  = (List<User>) userRepository.findAll();
+		List<User> users = new ArrayList<User>();
+		for (User user : allUsers) {
+			if (user.hasWaiterRole()) {
+				users.add(user);
+			}
+		}
+		for (User user : users) {
+			SummaryData userData;
+			List<Order> userOrders = orderRepository.findByUsernameIgnoreCaseAndStateIs(user.getUsername(), OrderState.FINISHED);
+			userData = userOrders.size() > 0 ? new SummaryData(userOrders, categories) : new SummaryData();
+			data.setUserData(user.getUsername(), userData);
 		}
 		return new ModelAndView("index").addObject("users", users).addObject("data", data);
 	} 

@@ -6,7 +6,9 @@
 package com.burgerjavis.summary;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Order;
@@ -19,6 +21,8 @@ public class SummaryData {
 	private List<Category> topCategories;
 	private List<List<TopProduct>> topProducts;
 	
+	private Map<String, SummaryData> userSummaryData;
+	
 	private int counter = 0;
 	
 	public SummaryData() {
@@ -26,14 +30,16 @@ public class SummaryData {
 		this.profits = 0.0f;
 		this.topCategories = new ArrayList<Category>();
 		this.topProducts = new ArrayList<List<TopProduct>>();
+		this.userSummaryData = new HashMap<String, SummaryData>();
 	}
 	
 	public SummaryData(List<Order> orders, List<Category> categories) {
 		this.completedOrders = orders.size();
 		this.profits = 0.0f;
-		this.topCategories = categories;
+		this.topCategories = new ArrayList<Category>(categories);
 		this.topCategories.add(new Category("- Otros -"));
 		this.topProducts = new ArrayList<List<TopProduct>>();
+		this.userSummaryData = new HashMap<String, SummaryData>();
 		// Create a top product list per category
 		for (int i = 0; i < this.topCategories.size(); i++) {
 			this.topProducts.add(new ArrayList<TopProduct>());
@@ -97,6 +103,15 @@ public class SummaryData {
 	public int getNextCounter() {
 		return this.counter++;
 	}
+	
+	public SummaryData getUserData(String username) {
+		SummaryData data = this.userSummaryData.get(username);
+		return data != null ? data : new SummaryData();
+	}
+	
+	public void setUserData(String username, SummaryData data) {
+		this.userSummaryData.put(username, data);
+	}
 
 	public float getProfits() {
 		return profits;
@@ -130,4 +145,20 @@ public class SummaryData {
 		this.topProducts = topProducts;
 	}
 
+	public Map<String, SummaryData> getUserSummaryData() {
+		return userSummaryData;
+	}
+
+	public void setUserSummaryData(Map<String, SummaryData> userSummaryData) {
+		this.userSummaryData = userSummaryData;
+	}
+
+	public int getCounter() {
+		return counter;
+	}
+
+	public void setCounter(int counter) {
+		this.counter = counter;
+	}
+	
 }
