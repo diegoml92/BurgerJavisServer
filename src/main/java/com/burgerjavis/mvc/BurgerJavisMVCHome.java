@@ -15,10 +15,14 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Category;
+import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
+import com.burgerjavis.entities.Product;
 import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.CategoryRepository;
+import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
+import com.burgerjavis.repositories.ProductRepository;
 import com.burgerjavis.repositories.UserRepository;
 import com.burgerjavis.summary.SummaryData;
 
@@ -29,6 +33,10 @@ public class BurgerJavisMVCHome {
 	private UserRepository userRepository;
 	@Autowired
 	private OrderRepository orderRepository;
+	@Autowired
+	private ProductRepository productRepository;
+	@Autowired
+	private IngredientRepository ingredientRepository;
 	@Autowired
 	private CategoryRepository categoryRepository;
 	
@@ -51,7 +59,10 @@ public class BurgerJavisMVCHome {
 			userData = userOrders.size() > 0 ? new SummaryData(userOrders, categories) : new SummaryData();
 			data.setUserData(user.getUsername(), userData);
 		}
-		return new ModelAndView("index").addObject("users", users).addObject("data", data);
+		List<Product> menu = (List<Product>) productRepository.findAll();
+		List<Ingredient> ingredients = (List<Ingredient>) ingredientRepository.findAll();
+		return new ModelAndView("index").addObject("users", users).addObject("data", data).addObject("categories", categories).
+				addObject("menu", menu).addObject("ingredients", ingredients);
 	} 
 
 }

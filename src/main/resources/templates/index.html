@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content=""></meta>
-    <meta name="author" content=""></meta>
+    <meta name="author" content="Diego Moreno Lennon"></meta>
     <link rel="icon" href="../../favicon.ico"></link>
 
     <title>Burger Javi's - Inicio</title>
@@ -22,6 +22,7 @@
 
   <body>
   
+  	<!--  TOP NAVBAR -->
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
       <a class="navbar-brand" th:href="@{/}">Burger Javi's Administración</a>
       <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarLogin" 
@@ -39,19 +40,32 @@
 
     <div class="container-fluid">
       <div class="row">
-        <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
+      
+        <!-- SIDEBAR -->
+        <nav class="col-md-2 d-sm-block bg-light pt-3">
           <ul class="nav nav-pills flex-column" role="tablist">
             <li class="nav-item">
               <a class="nav-link active" data-toggle="pill" href="#summary" role="tab">Sumario</a>
             </li>
             <li th:each="user : ${users}" class="nav-item">
-              <a class="nav-link" data-toggle="pill" th:text="${user.getUsername()}" 
+              <a class="nav-link" data-toggle="pill" th:text="'&nbsp;>&nbsp;&nbsp;' + ${user.getUsername()}" 
               		th:href="'#' + ${user.getUsername()}" role="tab"></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="pill" href="#menu" role="tab">Menú</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="pill" href="#ingredients" role="tab">&nbsp;>&nbsp;&nbsp;Ingredientes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="pill" href="#categories" role="tab">&nbsp;>&nbsp;&nbsp;Categorías</a>
             </li>
           </ul>
         </nav>
 
-        <main class="col-sm-9 ml-sm-auto col-md-10 pt-3 tab-content" role="main">
+        <main class="col-md-10 pt-3 tab-content" role="main">
+        
+          <!-- SUMMARY TAB -->
           <div class="tab-pane fade show active" id="summary" role="tabpanel">
             <div>
               <h1>Sumario</h1>
@@ -67,7 +81,6 @@
                 </div>
               </section>
             </div>
-
             <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=${data.resetCounter()}" class="top-products-container">
               <h1>Productos más vendidos</h1>
               <ul class="list-group">
@@ -83,7 +96,9 @@
               </ul>
             </div>
           </div>
-          <div th:each="user : ${users}" class="tab-pane fade active" th:with="username=${user.getUsername()}"
+          
+          <!-- USER TAB -->
+          <div th:each="user : ${users}" class="tab-pane fade" th:with="username=${user.getUsername()}"
           		th:id="${username}" role="tabpanel">
           	<div>
               <h1 th:text="'Sumario [' + ${username} + ']'"></h1>
@@ -103,7 +118,6 @@
                 </div>
               </section>
             </div>
-
             <div th:if="${!data.getUserData(username).getTopCategories().isEmpty()}" 
             		th:with="index=${data.getUserData(username).resetCounter()}" class="top-products-container">
               <h1>Productos más vendidos</h1>
@@ -121,12 +135,69 @@
               </ul>
             </div>
           </div>
+          
+          <!-- MENU TAB -->
+          <div class="tab-pane fade" id="menu" role="tabpanel">
+          	<h1>Menú</h1>
+            <div th:if="${!menu.isEmpty()}">
+              <div class="list-group">
+                <a class="list-group-item list-group-item-action" th:each="product : ${menu}" 
+                	th:href="@{/webclient/product/get(id=${product.get_id()})}">
+                  <span class="h3" th:text="${product.getName()}"></span>
+                  <span class="badge badge-primary badge-pill float-right" 
+                  		th:text="${#numbers.formatDecimal(product.getPrice(),1,'DEFAULT',2,'DEFAULT') + '€'}"></span>
+                  <ul th:if="${!product.getIngredients().isEmpty()}" class="list-group">
+                    <li class="list-group-item" th:each="ingredient : ${product.getIngredients()}">
+                      <span th:text="${ingredient.getName()}"></span>
+                    </li>
+                  </ul>
+                </a>
+              </div>
+            </div>
+            <div th:if="${menu.isEmpty()}">
+              <h3>¡No hay productos disponibles!</h3>
+            </div>
+          </div>
+          
+          <!-- INGREDIENT TAB -->
+          <div class="tab-pane fade" id="ingredients" role="tabpanel">
+          	<h1>Ingredientes</h1>
+            <div th:if="${!ingredients.isEmpty()}">
+              <div class="list-group">
+                <a class="list-group-item list-group-item-action" th:each="ingredient : ${ingredients}" 
+                	th:href="@{/webclient/ingredient/get(id=${ingredient.get_id()})}">
+                  <span class="h3" th:text="${ingredient.getName()}"></span>
+                  <span class="badge badge-primary badge-pill float-right" 
+                  		th:text="'+' + ${#numbers.formatDecimal(ingredient.getExtraPrice(),1,'DEFAULT',2,'DEFAULT') + '€'}"></span>
+                </a>
+              </div>
+            </div>
+            <div th:if="${ingredients.isEmpty()}">
+              <h3>¡No hay ingredientes disponibles!</h3>
+            </div>
+          </div>
+          
+          <!-- CATEGORY TAB -->
+          <div class="tab-pane fade" id="categories" role="tabpanel">
+          	<h1>Categorías</h1>
+            <div th:if="${!categories.isEmpty()}">
+              <div class="list-group">
+                <a class="list-group-item list-group-item-action" th:each="category : ${categories}" 
+                	th:href="@{/webclient/category/get(id=${category.get_id()})}">
+                  <span class="h3" th:text="${category.getName()}"></span>
+                  <span th:if="${category.isFavorite()}" class="glyphicon glyphicon-star float-right blue"></span>
+                </a>
+              </div>
+            </div>
+            <div th:if="${categories.isEmpty()}">
+              <h3>¡No hay categorías disponibles!</h3>
+            </div>
+          </div>
         </main>
       </div>
     </div>
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
+    <!-- Bootstrap core JavaScript -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script th:src="@{/webjars/jquery/3.2.1/jquery.min.js}"></script>
     <script th:src="@{/webjars/popper.js/1.12.5/dist/umd/popper.min.js}"></script>

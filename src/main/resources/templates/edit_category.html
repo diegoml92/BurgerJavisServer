@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8"></meta>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content=""></meta>
+    <meta name="author" content="Diego Moreno Lennon"></meta>
+    <link rel="icon" href="../../favicon.ico"></link>
+
+    <title th:text="'Burger Javi\'s - Editar ' + (${category.getName()} ?: 'Categoría desconocida')"></title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/webjars/bootstrap/4.0.0-beta-1/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/common.css}" rel="stylesheet"></link>
+
+  </head>
+
+  <body>
+  
+  	<!--  TOP NAVBAR -->
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" th:href="@{/}">Burger Javi's Administración</a>
+      <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarLogin" 
+      		aria-controls="navbarLogin" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarLogin">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/webclient/logout}">Cerrar sesión</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div th:if="${error}" class="alert alert-danger mt-3 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+        <strong th:text="${error.mainText} + ': '"></strong>
+        <span th:text="${error.causeText}"></span>
+      </div>
+      <form th:if="${category != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto" id="needs-validation" 
+      		th:novalidate="novalidate" th:action="@{/webclient/category/modify(id=${category.get_id()})}" 
+      		th:method="put" th:object="${category}">
+		<div class="form-group row">
+		  <label for="inputName" class="col-sm-2 col-form-label">Nombre</label>
+		  <div class="col-sm-10">
+		    <input type="text" class="form-control" id="inputName" th:value="${category.getName()}" 
+		    		th:required="required" th:field="*{name}"/>
+		    <div class="invalid-feedback">Por favor, introduzca un nombre válido.</div>
+		  </div>
+		</div>
+		<div class="form-group row">
+		  <label for="inputFav" class="col-sm-2 col-form-label">Favorita</label>
+		  <div class="col-sm-10">
+		    <input type="checkbox" th:checked="${category.isFavorite()}" name="favorite" id="inputFav"/>
+		  </div>
+		</div>
+		<input type="hidden" th:field="*{icon}"/>
+		<button type="submit" class="btn btn-primary">Guardar cambios</button>
+		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
+	  </form>
+    </div>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script th:src="@{/webjars/jquery/3.2.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/1.12.5/dist/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.0.0-beta-1/js/bootstrap.min.js}"></script>
+    
+    <!--  Custom scripts for this template -->
+    <script th:src="@{/js/validation.js}"></script>
+  </body>
+</html>

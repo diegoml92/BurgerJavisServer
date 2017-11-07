@@ -5,17 +5,62 @@
 
 package com.burgerjavis.mvc;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.burgerjavis.ErrorText;
+import com.burgerjavis.ErrorText.ErrorCause;
+import com.burgerjavis.entities.Ingredient;
+import com.burgerjavis.repositories.IngredientRepository;
+import com.burgerjavis.validation.IngredientValidator;
+
 @Controller
-@RequestMapping("/webclient/ingredients")
+@RequestMapping("/webclient/ingredient**")
 public class BurgerJavisMVCIngredient {
 	
+	@Autowired
+	IngredientRepository ingredientRepository;
+	
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public ModelAndView addProduct () {
+	public ModelAndView addIngredient () {
 		return new ModelAndView("to_do_template");
+	}
+	
+	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
+	public ModelAndView getIngredient(String id) {
+		Ingredient ingredient = ingredientRepository.findOne(id);
+		return new ModelAndView("edit_ingredient").addObject("ingredient", ingredient);
+
+	}
+	
+	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)
+	public ModelAndView modifyIngredient (String id, Ingredient ingredient) {
+		final String errorText = "ERROR ACTUALIZANDO INGREDIENTE";
+		Ingredient currentIngredient = ingredientRepository.findOne(id);
+		if(currentIngredient == null) {
+			ErrorCause cause = ErrorCause.NOT_FOUND;
+			return new ModelAndView("edit_ingredient").addObject("ingredient", ingredient).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		if(!IngredientValidator.validateIngredient(ingredient)) {
+			ErrorCause cause = ErrorCause.INVALID_DATA;
+			return new ModelAndView("edit_ingredient").addObject("ingredient", currentIngredient).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		// Check if name is modified
+		if(!ingredient.getName().equalsIgnoreCase(currentIngredient.getName())) {
+			// Name has been modified
+			if(ingredientRepository.findByNameIgnoreCase(ingredient.getName()).size() > 0) {
+				ErrorCause cause = ErrorCause.NAME_IN_USE;
+				return new ModelAndView("edit_ingredient").addObject("ingredient", currentIngredient).
+						addObject("error", new ErrorText(errorText, cause));
+			}
+		}
+		currentIngredient.updateIngredient(ingredient);
+		ingredientRepository.save(currentIngredient);
+		return new ModelAndView("redirect:/");
 	}
 }

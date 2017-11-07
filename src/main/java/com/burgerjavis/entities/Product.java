@@ -100,14 +100,15 @@ public class Product {
 
 	@Override
 	public String toString() {
-		/*String result = this.name + " " + this.price + "[" + this.category + "]";
+		String result = this.name + " " + this.price + "[" + this.category.toString() + "]\n";
 		if (!this.ingredients.isEmpty()) {
-			result += "\n";
 			for (Ingredient ing : this.ingredients) {
 				result += "\t" + ing.toString();
 			}
-		}*/
-		return this.name + " - " + this.price; 
+		} else {
+			result += "No hay ingredientes";
+		}
+		return result;
 	}
 	
 	
