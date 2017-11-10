@@ -11,6 +11,8 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.burgerjavis.Common;
+
 
 public class User {
 	
@@ -68,15 +70,19 @@ public class User {
 	}
 	
 	public boolean hasWaiterRole () {
-		final String C_ROLE_WAITER = "ROLE_WAITER";
-		final String C_ROLE_ADMIN = "ROLE_ADMIN";
 		for (GrantedAuthority role : this.roles) {
 			String roleAuth = role.getAuthority();
-			if (roleAuth.equalsIgnoreCase(C_ROLE_WAITER) || roleAuth.equalsIgnoreCase(C_ROLE_ADMIN)) {
+			if (roleAuth.equalsIgnoreCase(Common.WAITER_ROLE) || roleAuth.equalsIgnoreCase(Common.ADMIN_ROLE)) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public void updateUser(User user) {
+		this.username = user.username;
+		this.password = user.password;
+		this.roles = user.roles;
 	}
 	
 }

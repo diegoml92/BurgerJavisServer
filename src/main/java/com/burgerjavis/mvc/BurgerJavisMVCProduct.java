@@ -30,17 +30,11 @@ public class BurgerJavisMVCProduct {
 	@Autowired
 	private CategoryRepository categoryRepository;
 	
-	@RequestMapping(value = "", method = RequestMethod.GET)
-	public ModelAndView addProduct () {
-		return new ModelAndView("to_do_template");
-	}
-	
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getProduct(String id) {
 		Product product = productRepository.findOne(id);
 		List<Category> categories = (List<Category>) categoryRepository.findAll();
 		return new ModelAndView("edit_product").addObject("product", product).addObject("categories", categories);
-
 	}
 	
 	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)

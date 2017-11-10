@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.validation.IngredientValidator;
@@ -34,7 +35,7 @@ public class BurgerJavisRESTIngredient {
 	// INGREDIENT HANDLER
 
 	/* Return ingredients list */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<List<Ingredient>> getIngredients() {
 		List<Ingredient> ingredients = null;
@@ -47,7 +48,7 @@ public class BurgerJavisRESTIngredient {
 	}
 
 	/* Return referenced ingredient */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<Ingredient> getIngredient(@PathVariable ("id") String id) {
 		Ingredient ingredient = null;
@@ -61,7 +62,7 @@ public class BurgerJavisRESTIngredient {
 	}
 
 	/* Modify existing ingredient */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Ingredient> modifyIngredient
 			(@PathVariable ("id") String id, @RequestBody Ingredient ingredient) {
@@ -92,7 +93,7 @@ public class BurgerJavisRESTIngredient {
 	}
 
 	/* Delete referenced ingredient */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteIngredient (@PathVariable ("id") String id) {
 		try {
@@ -108,7 +109,7 @@ public class BurgerJavisRESTIngredient {
 	}
 
 	/* Create new ingredient */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.POST)
 	public ResponseEntity<Ingredient> addIngredient
 			(@RequestBody Ingredient ingredient) {

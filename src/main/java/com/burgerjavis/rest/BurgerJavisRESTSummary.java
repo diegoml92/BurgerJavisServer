@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Order;
@@ -37,7 +38,7 @@ public class BurgerJavisRESTSummary {
 	// SUMMARY HANDLER
 
 	/* Return summary data */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<SummaryData> getSummaryData() {
 		SummaryData data = null;

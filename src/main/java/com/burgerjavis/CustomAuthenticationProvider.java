@@ -30,7 +30,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		boolean admin = false;
 		int i = 0;
 		while (!admin && i < roles.size()) {
-			admin = roles.get(i).getAuthority().equalsIgnoreCase("ROLE_ADMIN");
+			admin = roles.get(i).getAuthority().equalsIgnoreCase(Common.ADMIN_ROLE);
 			i++;
 		}
 		return admin;

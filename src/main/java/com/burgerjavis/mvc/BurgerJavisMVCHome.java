@@ -61,7 +61,7 @@ public class BurgerJavisMVCHome {
 		}
 		List<Product> menu = (List<Product>) productRepository.findAll();
 		List<Ingredient> ingredients = (List<Ingredient>) ingredientRepository.findAll();
-		return new ModelAndView("index").addObject("users", users).addObject("data", data).addObject("categories", categories).
+		return new ModelAndView("index").addObject("users", allUsers).addObject("data", data).addObject("categories", categories).
 				addObject("menu", menu).addObject("ingredients", ingredients);
 	} 
 

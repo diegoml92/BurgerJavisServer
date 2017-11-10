@@ -51,9 +51,9 @@ public class DatabaseLoader {
 	private void initDatabase() {
 		mongoTemplate.getDb().dropDatabase();
 		
-		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority("ROLE_WAITER") };
-		GrantedAuthority [] roles2 = { new SimpleGrantedAuthority("ROLE_ADMIN") };
-		GrantedAuthority [] roles3 = { new SimpleGrantedAuthority("ROLE_KITCHEN") };
+		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority(Common.WAITER_ROLE) };
+		GrantedAuthority [] roles2 = { new SimpleGrantedAuthority(Common.ADMIN_ROLE) };
+		GrantedAuthority [] roles3 = { new SimpleGrantedAuthority(Common.KITCHEN_ROLE) };
 		
 		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles1)));
 		userRepository.save(new User("user2", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles3)));

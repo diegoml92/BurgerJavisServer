@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.entities.User;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -28,13 +29,13 @@ public class UnitTestUtil {
 	// ROLES
 	public static enum UserRole {ROLE_ADMIN, ROLE_WAITER, ROLE_KITCHEN};
 	
-	private static final GrantedAuthority[] ADMIN = {new SimpleGrantedAuthority("ROLE_ADMIN")};
+	private static final GrantedAuthority[] ADMIN = {new SimpleGrantedAuthority(Common.ADMIN_ROLE)};
 	private static final List<GrantedAuthority> ADMIN_ROLE = Arrays.asList(ADMIN);
 	
-	private static final GrantedAuthority[] WAITER = {new SimpleGrantedAuthority("ROLE_WAITER")};
+	private static final GrantedAuthority[] WAITER = {new SimpleGrantedAuthority(Common.WAITER_ROLE)};
 	private static final List<GrantedAuthority> WAITER_ROLE = Arrays.asList(WAITER);
 	
-	private static final GrantedAuthority[] KITCHEN = {new SimpleGrantedAuthority("ROLE_KITCHEN")};
+	private static final GrantedAuthority[] KITCHEN = {new SimpleGrantedAuthority(Common.KITCHEN_ROLE)};
 	private static final List<GrantedAuthority> KITCHEN_ROLE = Arrays.asList(KITCHEN);
 	
 	// AUXILIARY METHODS

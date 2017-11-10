@@ -29,7 +29,6 @@ public class BurgerJavisMVCCategory {
 	public ModelAndView getCategory(String id) {
 		Category category = categoryRepository.findOne(id);
 		return new ModelAndView("edit_category").addObject("category", category);
-
 	}
 	
 	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)

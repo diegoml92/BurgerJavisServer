@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.burgerjavis.BurgerJavisConstants;
+import com.burgerjavis.Common;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.validation.CategoryValidator;
@@ -34,7 +35,7 @@ public class BurgerJavisRESTCategory {
 	// CATEGORY HANDLER
 
 	/* Return category list */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<List<Category>> getCategories() {
 		List<Category> categories = null;
@@ -47,7 +48,7 @@ public class BurgerJavisRESTCategory {
 	}
 
 	/* Return referenced category */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<Category> getCategory(@PathVariable ("id") String id) {
 		Category category = null;
@@ -61,7 +62,7 @@ public class BurgerJavisRESTCategory {
 	}
 
 	/* Modify existing category */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Category> modifyCategory
 			(@PathVariable ("id") String id, @RequestBody Category category) {
@@ -98,7 +99,7 @@ public class BurgerJavisRESTCategory {
 	}
 
 	/* Delete referenced category */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteCategory (@PathVariable ("id") String id) {
 		try {
@@ -114,7 +115,7 @@ public class BurgerJavisRESTCategory {
 	}
 
 	/* Create new category */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.POST)
 	public ResponseEntity<Category> addCategory(@RequestBody Category category) {
 		Category newCategory = null;

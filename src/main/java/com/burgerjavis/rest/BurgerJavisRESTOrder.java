@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.repositories.OrderRepository;
@@ -36,7 +37,7 @@ public class BurgerJavisRESTOrder {
 	// ORDER HANDLER
 
 	/* Return order list */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<List<Order>> getOrders(Principal principal) {
 		List<Order> orders = null;
@@ -50,7 +51,7 @@ public class BurgerJavisRESTOrder {
 	}
 
 	/* Return referenced order */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<Order> getOrder(@PathVariable ("id") String id, Principal principal) {
 		Order order = null;
@@ -72,7 +73,7 @@ public class BurgerJavisRESTOrder {
 	}
 
 	/* Modify existing order */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Order> modifyOrder
 			(@PathVariable ("id") String id, @RequestBody Order order, Principal principal) {
@@ -120,7 +121,7 @@ public class BurgerJavisRESTOrder {
 	}
 
 	/* Delete referenced order */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteOrder (@PathVariable ("id") String id, Principal principal) {
 		try {
@@ -143,7 +144,7 @@ public class BurgerJavisRESTOrder {
 	}
 
 	/* Create new order */
-	@Secured ({"ROLE_WAITER", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "", method = RequestMethod.POST)
 	public ResponseEntity<Order> addOrder(@RequestBody Order order, Principal principal) {
 		Order newOrder = null;

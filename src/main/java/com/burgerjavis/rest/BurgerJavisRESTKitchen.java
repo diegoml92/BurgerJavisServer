@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.repositories.OrderRepository;
@@ -34,7 +35,7 @@ public class BurgerJavisRESTKitchen {
 	// KITCHEN HANDLER
 	
 	/* Return order list */
-	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@Secured ({Common.KITCHEN_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<List<Order>> getKitchenOrders() {
 		List<Order> orders = null;
@@ -47,7 +48,7 @@ public class BurgerJavisRESTKitchen {
 	}
 	
 	/* Return referenced order */
-	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@Secured ({Common.KITCHEN_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<Order> getKitchenOrder(@PathVariable ("id") String id) {
 		Order order = null;
@@ -66,7 +67,7 @@ public class BurgerJavisRESTKitchen {
 	}
 	
 	/* Modify existing order */
-	@Secured ({"ROLE_KITCHEN", "ROLE_ADMIN"})
+	@Secured ({Common.KITCHEN_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Order> modifyKitchenOrder (@PathVariable ("id") String id, @RequestBody Order order) {
 		Order modifiedOrder = null;

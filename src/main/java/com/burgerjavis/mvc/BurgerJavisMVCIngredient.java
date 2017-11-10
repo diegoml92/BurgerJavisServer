@@ -24,16 +24,10 @@ public class BurgerJavisMVCIngredient {
 	@Autowired
 	IngredientRepository ingredientRepository;
 	
-	@RequestMapping(value = "", method = RequestMethod.GET)
-	public ModelAndView addIngredient () {
-		return new ModelAndView("to_do_template");
-	}
-	
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getIngredient(String id) {
 		Ingredient ingredient = ingredientRepository.findOne(id);
 		return new ModelAndView("edit_ingredient").addObject("ingredient", ingredient);
-
 	}
 	
 	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)

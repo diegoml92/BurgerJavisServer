@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.entities.Product;
 import com.burgerjavis.repositories.ProductRepository;
 import com.burgerjavis.validation.ProductValidator;
@@ -34,7 +35,7 @@ public class BurgerJavisRESTProduct {
 	// PRODUCT HANDLER
 
 	/* Return product list */
-	@Secured ({"ROLE_WAITER", "ROLE_KITCHEN", "ROLE_ADMIN"})
+	@Secured ({Common.WAITER_ROLE, Common.KITCHEN_ROLE, Common.ADMIN_ROLE})
 	@RequestMapping (value = "", method = RequestMethod.GET)
 	public ResponseEntity<List<Product>> getProducts() {
 		List<Product> products = null;
@@ -47,7 +48,7 @@ public class BurgerJavisRESTProduct {
 	}
 
 	/* Return referenced product */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.GET)
 	public ResponseEntity<Product> getProduct(@PathVariable ("id") String id) {
 		Product product = null;
@@ -61,7 +62,7 @@ public class BurgerJavisRESTProduct {
 	}
 
 	/* Modify existing product */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.PUT)
 	public ResponseEntity<Product> modifyProduct
 			(@PathVariable ("id") String id, @RequestBody Product product) {
@@ -92,7 +93,7 @@ public class BurgerJavisRESTProduct {
 	}
 
 	/* Delete referenced product */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteProduct (@PathVariable ("id") String id) {
 		try {
@@ -108,7 +109,7 @@ public class BurgerJavisRESTProduct {
 	}
 
 	/* Create new product */
-	@Secured ("ROLE_ADMIN")
+	@Secured (Common.ADMIN_ROLE)
 	@RequestMapping (value = "", method = RequestMethod.POST)
 	public ResponseEntity<Product> addProduct(@RequestBody Product product) {
 		Product newProduct = null;
