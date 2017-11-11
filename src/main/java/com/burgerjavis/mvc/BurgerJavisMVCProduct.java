@@ -17,6 +17,7 @@ import com.burgerjavis.ErrorText;
 import com.burgerjavis.ErrorText.ErrorCause;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Product;
+import com.burgerjavis.mvc.wrappers.ProductWrapper;
 import com.burgerjavis.repositories.CategoryRepository;
 import com.burgerjavis.repositories.ProductRepository;
 import com.burgerjavis.validation.ProductValidator;
@@ -33,12 +34,15 @@ public class BurgerJavisMVCProduct {
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getProduct(String id) {
 		Product product = productRepository.findOne(id);
+		ProductWrapper productWrapper = new ProductWrapper();
+		productWrapper.wrapInternalType(product);
 		List<Category> categories = (List<Category>) categoryRepository.findAll();
-		return new ModelAndView("edit_product").addObject("product", product).addObject("categories", categories);
+		return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories);
 	}
 	
 	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)
-	public ModelAndView modifyProduct(String id, Product product) {
+	public ModelAndView modifyProduct(String id, ProductWrapper product) {
+		Product modProduct = product.getInternalType();
 		final String errorText = "ERROR ACTUALIZANDO PRODUCTO";
 		Product currentProduct = productRepository.findOne(id);
 		if(currentProduct == null) {
@@ -46,21 +50,25 @@ public class BurgerJavisMVCProduct {
 			return new ModelAndView("edit_product").addObject("product", product).
 					addObject("error", new ErrorText(errorText, cause));
 		}
-		if(!ProductValidator.validateProduct(product)) {
+		if(!ProductValidator.validateProduct(modProduct)) {
 			ErrorCause cause = ErrorCause.INVALID_DATA;
-			return new ModelAndView("edit_product").addObject("product", currentProduct).
+			ProductWrapper productWrapper = new ProductWrapper();
+			productWrapper.wrapInternalType(currentProduct);
+			return new ModelAndView("edit_product").addObject("product", productWrapper).
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		// Check if name is modified
-		if(!product.getName().equalsIgnoreCase(currentProduct.getName())) {
+		if(!modProduct.getName().equalsIgnoreCase(currentProduct.getName())) {
 			// Name has been modified
-			if(productRepository.findByNameIgnoreCase(product.getName()).size() > 0) {
+			if(productRepository.findByNameIgnoreCase(modProduct.getName()).size() > 0) {
 				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				return new ModelAndView("edit_product").addObject("product", currentProduct).
+				ProductWrapper productWrapper = new ProductWrapper();
+				productWrapper.wrapInternalType(currentProduct);
+				return new ModelAndView("edit_product").addObject("product", productWrapper).
 						addObject("error", new ErrorText(errorText, cause));
 			}
 		}
-		currentProduct.updateProduct(product);
+		currentProduct.updateProduct(modProduct);
 		productRepository.save(currentProduct);
 		return new ModelAndView("redirect:/");
 	}

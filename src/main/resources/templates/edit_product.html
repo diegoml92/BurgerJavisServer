@@ -39,7 +39,7 @@
 
     <div class="container-fluid">
       <form th:if="${product != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto" id="needs-validation" 
-      		th:novalidate="novalidate" th:action="@{/webclient/product/modify(id=${product.get_id()})}" 
+      		th:novalidate="novalidate" th:action="@{/webclient/product/modify(id=${product.getId()})}" 
       		th:method="put" th:object="${product}">
 		<div class="form-group row">
 		  <label for="inputName" class="col-sm-2 col-form-label">Nombre</label>
@@ -52,26 +52,23 @@
 		<div class="form-group row">
 		  <label for="inputPrice" class="col-sm-2 col-form-label">Precio</label>
 		  <div class="col-sm-10">
-		    <input type="number" class="form-control" id="inputPrice" th:value="${product.getPrice()}" 
+		    <input type="number" step="0.05" class="form-control" id="inputPrice" th:value="${product.getPrice()}" 
 		    		th:required="required" th:field="*{price}"/>
 		    <div class="invalid-feedback">Por favor, introduzca un valor válido.</div>
 		  </div>
 		</div>
 		<div class="form-group row">
-		  <select class="custom-select d-block my-3" th:required="required" th:field="*{category.name}">
+		  <select class="custom-select d-block my-3" th:required="required" th:field="*{categoryId}">
 		    <option value="default">Por defecto</option>
-		    <option th:each="category : ${categories}" th:with="categoryName=${category.getName()}" 
-		    		th:value="${categoryName}" th:text="${categoryName}"
-		    		th:selected="${product.getCategory().getName().equalsIgnoreCase(categoryName)}"></option>
+		    <option th:each="category : ${categories}" th:value="${category.get_id()}" th:text="${category.getName()}"
+		    		th:selected="${product.getCategoryId() != null ? 
+		    			product.getCategoryId().equalsIgnoreCase(category.get_id()) : false}"></option>
 		  </select>
-		  <input type="hidden" th:field="*{category._id}"/>
-		  <input type="hidden" th:field="*{category.icon}"/>
-		  <input type="hidden" th:field="*{category.favorite}"/>
-		  <div th:each="ingredient, i : *{ingredients}">
-		    <input type="hidden" th:field="*{ingredients[__${i.index}__]._id}"/>
-		    <input type="hidden" th:field="*{ingredients[__${i.index}__].name}"/>
-		    <input type="hidden" th:field="*{ingredients[__${i.index}__].extraPrice}"/>
-		  </div>
+		</div>
+		<div th:each="ingredient, i : *{ingredients}">
+		  <input type="hidden" th:field="*{ingredients[__${i.index}__].id}"/>
+		  <input type="hidden" th:field="*{ingredients[__${i.index}__].name}"/>
+		  <input type="hidden" th:field="*{ingredients[__${i.index}__].extraPrice}"/>
 		</div>
 		<button type="submit" class="btn btn-primary">Guardar cambios</button>
 		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
