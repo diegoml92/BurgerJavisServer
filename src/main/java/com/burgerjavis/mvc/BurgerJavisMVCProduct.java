@@ -31,6 +31,33 @@ public class BurgerJavisMVCProduct {
 	@Autowired
 	private CategoryRepository categoryRepository;
 	
+	@RequestMapping (value = "/add", method = RequestMethod.GET)
+	public ModelAndView addProduct() {
+		ProductWrapper productWrapper = new ProductWrapper();
+		List<Category> categories = (List<Category>) categoryRepository.findAll();
+		return new ModelAndView("add_product").addObject("product", productWrapper).addObject("categories", categories);
+	}
+	
+	@RequestMapping (value = "/add", method = RequestMethod.POST)
+	public ModelAndView addProduct(ProductWrapper product) {
+		final String errorText = "ERROR CREANDO PRODUCTO";
+		Product newProduct = product.getInternalType();
+		List<Category> categories = (List<Category>) categoryRepository.findAll();
+		if(!ProductValidator.validateProduct(newProduct)) {
+			ErrorCause cause = ErrorCause.INVALID_DATA;
+			return new ModelAndView("add_product").addObject("product", product).addObject("categories", categories).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		if(productRepository.findByNameIgnoreCase(newProduct.getName()).size() > 0) {
+			ErrorCause cause = ErrorCause.NAME_IN_USE;
+			return new ModelAndView("add_product").addObject("product", product).addObject("categories", categories).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		productRepository.save(newProduct);
+		return new ModelAndView("redirect:/");
+	}
+
+	
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getProduct(String id) {
 		Product product = productRepository.findOne(id);
@@ -42,19 +69,20 @@ public class BurgerJavisMVCProduct {
 	
 	@RequestMapping (value= "/modify{id}", method = RequestMethod.PUT)
 	public ModelAndView modifyProduct(String id, ProductWrapper product) {
-		Product modProduct = product.getInternalType();
 		final String errorText = "ERROR ACTUALIZANDO PRODUCTO";
+		Product modProduct = product.getInternalType();
 		Product currentProduct = productRepository.findOne(id);
+		List<Category> categories = (List<Category>) categoryRepository.findAll();
 		if(currentProduct == null) {
 			ErrorCause cause = ErrorCause.NOT_FOUND;
-			return new ModelAndView("edit_product").addObject("product", product).
+			return new ModelAndView("edit_product").addObject("product", product).addObject("categories", categories).
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		if(!ProductValidator.validateProduct(modProduct)) {
 			ErrorCause cause = ErrorCause.INVALID_DATA;
 			ProductWrapper productWrapper = new ProductWrapper();
 			productWrapper.wrapInternalType(currentProduct);
-			return new ModelAndView("edit_product").addObject("product", productWrapper).
+			return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		// Check if name is modified
@@ -64,7 +92,7 @@ public class BurgerJavisMVCProduct {
 				ErrorCause cause = ErrorCause.NAME_IN_USE;
 				ProductWrapper productWrapper = new ProductWrapper();
 				productWrapper.wrapInternalType(currentProduct);
-				return new ModelAndView("edit_product").addObject("product", productWrapper).
+				return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
 						addObject("error", new ErrorText(errorText, cause));
 			}
 		}

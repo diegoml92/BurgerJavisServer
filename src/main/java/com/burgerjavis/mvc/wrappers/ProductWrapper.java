@@ -27,15 +27,16 @@ public class ProductWrapper implements Wrapper<Product> {
 		product.set_id(id);
 		product.setName(name);
 		product.setPrice(price);
-		if(CategoryAccessor.categoryRepository == null) System.err.println("NOOOOOOOOOOOOOOOO!!!!");
 		Category category = CategoryAccessor.categoryRepository.findOne(categoryId);
 		if(category == null) {
 			category = new Category();
 		}
 		product.setCategory(category);
 		List<Ingredient> ingredientList = new ArrayList<Ingredient>();
-		for(IngredientWrapper ingredient : ingredients) {
-			ingredientList.add(ingredient.getInternalType());
+		if(ingredients != null) {
+			for(IngredientWrapper ingredient : ingredients) {
+				ingredientList.add(ingredient.getInternalType());
+			}
 		}
 		product.setIngredients(ingredientList);
 		return product;

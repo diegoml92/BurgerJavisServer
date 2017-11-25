@@ -7,7 +7,7 @@ package com.burgerjavis;
 
 public class ErrorText {
 	
-	public enum ErrorCause { NOT_FOUND, INVALID_DATA, MAX_FAVS, NAME_IN_USE }
+	public enum ErrorCause { NOT_FOUND, INVALID_DATA, MAX_FAVS, NAME_IN_USE, MIN_ADMINS }
 	
 	private String mainText;
 	private ErrorCause causeText;

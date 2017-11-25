@@ -24,6 +24,29 @@ public class BurgerJavisMVCIngredient {
 	@Autowired
 	IngredientRepository ingredientRepository;
 	
+	@RequestMapping (value = "/add", method = RequestMethod.GET)
+	public ModelAndView addIngredient() {
+		Ingredient ingredient = new Ingredient();
+		return new ModelAndView("add_ingredient").addObject("ingredient", ingredient);
+	}
+	
+	@RequestMapping (value = "/add", method = RequestMethod.POST)
+	public ModelAndView addIngredient(Ingredient ingredient) {
+		final String errorText = "ERROR CREANDO INGREDIENTE";
+		if(!IngredientValidator.validateIngredient(ingredient)) {
+			ErrorCause cause = ErrorCause.INVALID_DATA;
+			return new ModelAndView("add_ingredient").addObject("ingredient", ingredient).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		if(ingredientRepository.findByNameIgnoreCase(ingredient.getName()).size() > 0) {
+			ErrorCause cause = ErrorCause.NAME_IN_USE;
+			return new ModelAndView("add_ingredient").addObject("ingredient", ingredient).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		ingredientRepository.save(ingredient);
+		return new ModelAndView("redirect:/");
+	}
+	
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getIngredient(String id) {
 		Ingredient ingredient = ingredientRepository.findOne(id);

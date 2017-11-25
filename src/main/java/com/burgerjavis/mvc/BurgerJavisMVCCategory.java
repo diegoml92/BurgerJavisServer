@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.burgerjavis.BurgerJavisConstants;
+import com.burgerjavis.Common;
 import com.burgerjavis.ErrorText;
 import com.burgerjavis.ErrorText.ErrorCause;
 import com.burgerjavis.entities.Category;
@@ -24,6 +24,29 @@ public class BurgerJavisMVCCategory {
 	
 	@Autowired
 	CategoryRepository categoryRepository;
+	
+	@RequestMapping (value = "/add", method = RequestMethod.GET)
+	public ModelAndView addCategory() {
+		Category category = new Category();
+		return new ModelAndView("add_category").addObject("category", category);
+	}
+	
+	@RequestMapping (value = "/add", method = RequestMethod.POST)
+	public ModelAndView addCategory(Category category) {
+		final String errorText = "ERROR AL CREAR LA CATEGORÍA";
+		if(!CategoryValidator.validateCategory(category) || category.getName().trim().equalsIgnoreCase("")) {
+			ErrorCause cause = ErrorCause.INVALID_DATA;
+			return new ModelAndView("add_category").addObject("category", category).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
+			ErrorCause cause = ErrorCause.NAME_IN_USE;
+			return new ModelAndView("add_category").addObject("category", category).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		categoryRepository.save(category);
+		return new ModelAndView("redirect:/");
+	}
 	
 	@RequestMapping (value = "/get{id}", method = RequestMethod.GET)
 	public ModelAndView getCategory(String id) {
@@ -46,7 +69,7 @@ public class BurgerJavisMVCCategory {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		if(!currentCategory.isFavorite() && category.isFavorite()) {
-			if(categoryRepository.findByFavoriteTrue().size() >= BurgerJavisConstants.MAX_FAVORITES) {
+			if(categoryRepository.findByFavoriteTrue().size() >= Common.MAX_FAVORITES) {
 				ErrorCause cause = ErrorCause.MAX_FAVS;
 				return new ModelAndView("edit_category").addObject("category", currentCategory).
 						addObject("error", new ErrorText(errorText, cause));

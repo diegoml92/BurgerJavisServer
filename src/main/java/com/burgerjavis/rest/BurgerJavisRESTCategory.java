@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.burgerjavis.BurgerJavisConstants;
 import com.burgerjavis.Common;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.repositories.CategoryRepository;
@@ -77,7 +76,7 @@ public class BurgerJavisRESTCategory {
 				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
 			}
 			if(!currentCategory.isFavorite() && category.isFavorite()) {
-				if(categoryRepository.findByFavoriteTrue().size() >= BurgerJavisConstants.MAX_FAVORITES) {
+				if(categoryRepository.findByFavoriteTrue().size() >= Common.MAX_FAVORITES) {
 					// Max number of favorites reached
 					return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
 				}

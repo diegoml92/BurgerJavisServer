@@ -79,6 +79,16 @@ public class User {
 		return false;
 	}
 	
+	public boolean isAdmin() {
+		for (GrantedAuthority role : this.roles) {
+			String roleAuth = role.getAuthority();
+			if (roleAuth.equalsIgnoreCase(Common.ADMIN_ROLE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void updateUser(User user) {
 		this.username = user.username;
 		this.password = user.password;

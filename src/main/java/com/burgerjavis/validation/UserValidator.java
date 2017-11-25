@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.entities.User;
 
 public class UserValidator {
@@ -18,7 +19,7 @@ public class UserValidator {
 	}
 	
 	private static boolean validatePassword(String password) {
-		return password.length() > 0;
+		return password.length() >= Common.MIN_PASS_LENGTH;
 	}
 	
 	private static boolean validateRoles(List<GrantedAuthority> roles) {

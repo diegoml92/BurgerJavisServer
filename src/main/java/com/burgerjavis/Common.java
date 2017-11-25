@@ -7,6 +7,10 @@ package com.burgerjavis;
 
 public class Common {
 	
+	public static final int MAX_FAVORITES = 3;
+	public static final int MIN_ADMINS = 1;
+	public static final int MIN_PASS_LENGTH = 4;
+	
 	public final static String REALM = "BURGER_JAVIS_REALM";
 	
 	public final static String WAITER_ROLE  = "ROLE_WAITER";

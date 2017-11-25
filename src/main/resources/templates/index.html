@@ -75,7 +75,7 @@
               <section class="row text-center placeholders">
                 <div class="col-6 placeholder">
                   <h1 class="text-muted"><span class="stats-counter" 
-                  		th:text="${#numbers.formatDecimal(data.getProfits(),0,'DEFAULT',2,'DEFAULT')}"></span>€</h1>
+                  		th:text="${#numbers.formatDecimal(data.getProfits(),1,'DEFAULT',2,'DEFAULT')}"></span>€</h1>
                   <span>Beneficios</span>
                 </div>
                 <div class="col-6 placeholder">
@@ -100,7 +100,7 @@
             </div>
           </div>
           
-          <!-- USER TAB -->
+          <!-- USER SUMMARY TAB -->
           <div th:each="user : ${users}" class="tab-pane fade" th:with="username=${user.getUsername()}"
           		th:id="${username}" role="tabpanel">
           	<div>
@@ -109,7 +109,7 @@
                 <div class="col-6 placeholder">
                   <h1 class="text-muted">
                   	<span class="stats-counter" 
-                  			th:text="${#numbers.formatDecimal(data.getUserData(username).getProfits(),0,'DEFAULT',2,'DEFAULT')}"></span>€
+                  			th:text="${#numbers.formatDecimal(data.getUserData(username).getProfits(),1,'DEFAULT',2,'DEFAULT')}"></span>€
                   </h1>
                   <span>Beneficios</span>
                 </div>
@@ -160,6 +160,7 @@
             <div th:if="${menu.isEmpty()}">
               <h3>¡No hay productos disponibles!</h3>
             </div>
+            <a class="btn btn-outline-primary col-12 mb-5" th:href="@{/webclient/product/add}">+</a>
           </div>
           
           <!-- INGREDIENT TAB -->
@@ -178,6 +179,7 @@
             <div th:if="${ingredients.isEmpty()}">
               <h3>¡No hay ingredientes disponibles!</h3>
             </div>
+            <a class="btn btn-outline-primary col-12 mb-5" th:href="@{/webclient/ingredient/add}">+</a>
           </div>
           
           <!-- CATEGORY TAB -->
@@ -195,6 +197,7 @@
             <div th:if="${categories.isEmpty()}">
               <h3>¡No hay categorías disponibles!</h3>
             </div>
+            <a class="btn btn-outline-primary col-12 mb-5" th:href="@{/webclient/category/add}">+</a>
           </div>
           
           <!-- USER TAB -->
@@ -213,6 +216,7 @@
             <div th:if="${users.isEmpty()}">
               <h3>¡No hay categorías disponibles!</h3>
             </div>
+            <a class="btn btn-outline-primary col-12 mb-5" th:href="@{/webclient/user/add}">+</a>
           </div>
         </main>
       </div>
