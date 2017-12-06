@@ -38,6 +38,11 @@
     </nav>
 
     <div class="container-fluid">
+      <div th:if="${error}" class="alert alert-danger mt-3">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+        <strong th:text="${error.mainText} + ': '"></strong>
+        <span th:text="${error.causeText}"></span>
+      </div>
       <form th:if="${product != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto" id="needs-validation" 
       		th:novalidate="novalidate" th:action="@{/webclient/product/add}" 
       		th:method="post" th:object="${product}">
