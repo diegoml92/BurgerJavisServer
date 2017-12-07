@@ -100,4 +100,20 @@ public class BurgerJavisMVCProduct {
 		productRepository.save(currentProduct);
 		return new ModelAndView("redirect:/");
 	}
+	
+	@RequestMapping (value= "/delete{id}", method = RequestMethod.DELETE)
+	public ModelAndView deleteProduct (String id) {
+		final String errorText = "ERROR BORRANDO PRODUCTO";
+		Product currentProduct = productRepository.findOne(id);
+		if(currentProduct == null) {
+			ErrorCause cause = ErrorCause.NOT_FOUND;
+			ProductWrapper productWrapper = new ProductWrapper();
+			productWrapper.wrapInternalType(currentProduct);
+			List<Category> categories = (List<Category>) categoryRepository.findAll();
+			return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		productRepository.delete(currentProduct);
+		return new ModelAndView("redirect:/");
+	}
 }

@@ -110,4 +110,34 @@ public class BurgerJavisMVCUser {
 		return new ModelAndView("redirect:/");
 	}
 	
+	@RequestMapping (value= "/delete{id}", method = RequestMethod.DELETE)
+	public ModelAndView deleteUser (String id) {
+		final String errorText = "ERROR BORRANDO USUARIO";
+		User currentUser = userRepository.findOne(id);
+		if(currentUser == null) {
+			ErrorCause cause = ErrorCause.NOT_FOUND;
+			UserWrapper userWrapper = new UserWrapper();
+			userWrapper.wrapInternalType(currentUser);
+			return new ModelAndView("edit_user").addObject("user", userWrapper).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		if(currentUser.isAdmin()) {
+			int admins = 0;
+			for(User lUser : userRepository.findAll()) {
+				if(lUser.isAdmin()) {
+					admins++;
+				}
+			}
+			if (admins <= Common.MIN_ADMINS) {
+				ErrorCause cause = ErrorCause.MIN_ADMINS ;
+				UserWrapper userWrapper = new UserWrapper();
+				userWrapper.wrapInternalType(currentUser);
+				return new ModelAndView("edit_user").addObject("user", userWrapper).
+						addObject("error", new ErrorText(errorText, cause));
+			}
+		}
+		userRepository.delete(currentUser);
+		return new ModelAndView("redirect:/");
+	}
+	
 }

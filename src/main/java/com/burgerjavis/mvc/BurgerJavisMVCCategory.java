@@ -89,4 +89,17 @@ public class BurgerJavisMVCCategory {
 		return new ModelAndView("redirect:/");
 	}
 	
+	@RequestMapping (value= "/delete{id}", method = RequestMethod.DELETE)
+	public ModelAndView deleteCategory (String id) {
+		final String errorText = "ERROR BORRANDO CATEGORÍA";
+		Category currentCategory = categoryRepository.findOne(id);
+		if(currentCategory == null) {
+			ErrorCause cause = ErrorCause.NOT_FOUND;
+			return new ModelAndView("edit_category").addObject("category", currentCategory).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		categoryRepository.delete(currentCategory);
+		return new ModelAndView("redirect:/");
+	}
+	
 }

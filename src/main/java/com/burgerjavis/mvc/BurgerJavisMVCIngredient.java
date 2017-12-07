@@ -80,4 +80,17 @@ public class BurgerJavisMVCIngredient {
 		ingredientRepository.save(currentIngredient);
 		return new ModelAndView("redirect:/");
 	}
+	
+	@RequestMapping (value= "/delete{id}", method = RequestMethod.DELETE)
+	public ModelAndView deleteIngredient (String id) {
+		final String errorText = "ERROR BORRANDO INGREDIENTE";
+		Ingredient currentIngredient = ingredientRepository.findOne(id);
+		if(currentIngredient == null) {
+			ErrorCause cause = ErrorCause.NOT_FOUND;
+			return new ModelAndView("edit_ingredient").addObject("ingredient", currentIngredient).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		ingredientRepository.delete(currentIngredient);
+		return new ModelAndView("redirect:/");
+	}
 }

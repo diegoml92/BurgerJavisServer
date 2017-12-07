@@ -93,6 +93,10 @@
 		<button type="submit" class="btn btn-primary">Guardar cambios</button>
 		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
 	  </form>
+	  <form th:if="${user != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto"
+	  	th:action="@{/webclient/user/delete(id=${user.getId()})}" th:method="delete">
+	  	<button type="submit" class="btn btn-dark float-right">Borrar</button>
+      </form>
     </div>
 
     <!-- Bootstrap core JavaScript -->
