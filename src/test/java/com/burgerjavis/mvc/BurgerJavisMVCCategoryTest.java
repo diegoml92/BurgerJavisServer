@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -50,13 +51,13 @@ public class BurgerJavisMVCCategoryTest {
 	
 	@BeforeClass public static void setupClass() {
 		ChromeDriverManager.getInstance().setup();
-		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 
 	@Before
 	public void setUp() throws Exception {
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 	
 	@Test
@@ -191,9 +192,34 @@ public class BurgerJavisMVCCategoryTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 	}
 	
+	@Test
+	public void testBurgerJavisMVCCategoryDelete() throws Exception {
+		// Login
+		driver.get("http://localhost:8080/webclient/login");
+		driver.findElement(By.name("username")).click();
+		driver.findElement(By.name("username")).clear();
+		driver.findElement(By.name("username")).sendKeys("admin");
+		driver.findElement(By.name("password")).click();
+		driver.findElement(By.name("password")).clear();
+		driver.findElement(By.name("password")).sendKeys("admin");
+		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
+		
+		// Delete category
+		int nCategories = ((List<Category>) categoryRepository.findAll()).size();
+		driver.findElement(By.linkText(" >  Categorías")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("//div[@id='categories']/div/div/a[2]/span")).click();
+		driver.findElement(By.xpath("(//button[@type='submit'])[2]")).click();
+		assertEquals(categoryRepository.findByNameIgnoreCase("Hamburguesas").size(), 0);
+		assertEquals(((List<Category>) categoryRepository.findAll()).size(), nCategories - 1);
+	}
+	
 	@After
 	public void tearDown() throws Exception {
 		driver.quit();
+		SpringApplication.exit(context);
 		String verificationErrorString = verificationErrors.toString();
 		if (!"".equals(verificationErrorString)) {
 			fail(verificationErrorString);
@@ -201,7 +227,6 @@ public class BurgerJavisMVCCategoryTest {
 	}
 	
 	@AfterClass public static void tearDownClass() {
-		SpringApplication.exit(context);
 	}
 
 }

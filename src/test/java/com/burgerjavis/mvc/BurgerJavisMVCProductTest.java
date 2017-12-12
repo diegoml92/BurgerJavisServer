@@ -51,13 +51,13 @@ public class BurgerJavisMVCProductTest {
 	
 	@BeforeClass public static void setupClass() {
 		ChromeDriverManager.getInstance().setup();
-		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 	
 	@Before
 	public void setUp() throws Exception {
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 	
 	@Test
@@ -220,9 +220,34 @@ public class BurgerJavisMVCProductTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
 	}
 	
+	@Test
+	public void testBurgerJavisMVCProductDelete() throws Exception {
+		// Login
+		driver.get("http://localhost:8080/webclient/login");
+		driver.findElement(By.name("username")).click();
+		driver.findElement(By.name("username")).clear();
+		driver.findElement(By.name("username")).sendKeys("admin");
+		driver.findElement(By.name("password")).click();
+		driver.findElement(By.name("password")).clear();
+		driver.findElement(By.name("password")).sendKeys("admin");
+		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
+		
+		// Delete product
+		int nProducts = ((List<Product>) productRepository.findAll()).size();
+		driver.findElement(By.linkText("Menú")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("//div[@id='menu']/div/div/a[3]/span")).click();
+		driver.findElement(By.xpath("(//button[@type='submit'])[2]")).click();
+		assertEquals(productRepository.findByNameIgnoreCase("CocaCola").size(), 0);
+		assertEquals(((List<Product>) productRepository.findAll()).size(), nProducts - 1);
+	}
+	
 	@After
 	public void tearDown() throws Exception {
 		driver.quit();
+		SpringApplication.exit(context);
 		String verificationErrorString = verificationErrors.toString();
 		if (!"".equals(verificationErrorString)) {
 			fail(verificationErrorString);
@@ -230,7 +255,6 @@ public class BurgerJavisMVCProductTest {
 	}
 	
 	@AfterClass public static void tearDownClass() {
-		SpringApplication.exit(context);
 	}
 
 }

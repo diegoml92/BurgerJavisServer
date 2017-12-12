@@ -5,11 +5,13 @@
 
 package com.burgerjavis.mvc;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -51,13 +53,13 @@ public class BurgerJavisMVCUserTest {
 	
 	@BeforeClass public static void setupClass() {
 		ChromeDriverManager.getInstance().setup();
-		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 	
 	@Before
 	public void setUp() throws Exception {
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	}
 	
 	@Test
@@ -234,9 +236,67 @@ public class BurgerJavisMVCUserTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 	}
 	
+	@Test
+	public void testBurgerJavisMVCUserDelete() throws Exception {
+		// Login
+		driver.get("http://localhost:8080/webclient/login");
+		driver.findElement(By.name("username")).click();
+		driver.findElement(By.name("username")).clear();
+		driver.findElement(By.name("username")).sendKeys("admin");
+		driver.findElement(By.name("password")).click();
+		driver.findElement(By.name("password")).clear();
+		driver.findElement(By.name("password")).sendKeys("admin");
+		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
+		
+		// Delete user
+		int nUsers = ((List<User>) userRepository.findAll()).size();
+		driver.findElement(By.linkText("Usuarios")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("//div[@id='users']/div/div/a[2]")).click();
+		driver.findElement(By.xpath("(//button[@type='submit'])[2]")).click();
+		assertEquals(userRepository.findByUsernameIgnoreCase("user2"), null);
+		assertEquals(((List<User>) userRepository.findAll()).size(), nUsers - 1);
+		
+		// Create new admin user
+		driver.findElement(By.linkText("Usuarios")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("(//a[contains(text(),'+')])[4]")).click();
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		driver.findElement(By.id("inputName")).click();
+		driver.findElement(By.id("inputName")).clear();
+		driver.findElement(By.id("inputName")).sendKeys("user2");
+		driver.findElement(By.id("inputPassword")).click();
+		driver.findElement(By.id("inputPassword")).clear();
+		driver.findElement(By.id("inputPassword")).sendKeys("pass");
+		driver.findElement(By.id("role3")).click();
+		driver.findElement(By.xpath("//button[@type='submit']")).click();
+		assertNotNull(userRepository.findByUsernameIgnoreCase("user2"));
+		assertEquals(((List<User>) userRepository.findAll()).size(), nUsers);
+		
+		// Delete admin user
+		driver.findElement(By.linkText("Usuarios")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("//div[@id='users']/div/div/a[3]/span")).click();
+		driver.findElement(By.xpath("(//button[@type='submit'])[2]")).click();
+		assertEquals(userRepository.findByUsernameIgnoreCase("user2"), null);
+		assertEquals(((List<User>) userRepository.findAll()).size(), nUsers - 1);
+		
+		// Minimum admin users
+		driver.findElement(By.linkText("Usuarios")).click();
+		TimeUnit.SECONDS.sleep(1);
+		driver.findElement(By.xpath("//div[@id='users']/div/div/a[2]/span")).click();
+		driver.findElement(By.xpath("(//button[@type='submit'])[2]")).click();
+		assertEquals(userRepository.findByUsernameIgnoreCase("user2"), null);
+		assertEquals(((List<User>) userRepository.findAll()).size(), nUsers - 1);
+		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("MIN_ADMINS"));
+	}
+	
 	@After
 	public void tearDown() throws Exception {
 		driver.quit();
+		SpringApplication.exit(context);
 		String verificationErrorString = verificationErrors.toString();
 		if (!"".equals(verificationErrorString)) {
 			fail(verificationErrorString);
@@ -244,7 +304,6 @@ public class BurgerJavisMVCUserTest {
 	}
 	
 	@AfterClass public static void tearDownClass() {
-		SpringApplication.exit(context);
 	}
 
 }
