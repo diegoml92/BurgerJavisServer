@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8"></meta>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content=""></meta>
+    <meta name="author" content="Diego Moreno Lennon"></meta>
+    <link rel="icon" href="../../favicon.ico"></link>
+
+    <title>Burger Javi's - Inicio de sesión</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/webjars/bootstrap/4.0.0-beta-1/css/bootstrap.min.css}" rel="stylesheet"></link>
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/common.css}" rel="stylesheet"></link>
+    <link th:href="@{/css/login.css}" rel="stylesheet"></link>
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+	  <a class="navbar-brand" th:href="@{/}">Burger Javi's Administración</a>
+    </nav>
+    
+    <div class="container">
+      <div class="row vertical-offset-100">
+        <div class="col-md-6 col-md-offset-3 col-lg-6 col-lg-offset-3 mx-auto">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Introduzca sus datos</h3>
+            </div>
+            <div class="card-block">
+              <form th:action="@{/webclient/login}" method="post" accept-charset="UTF-8" role="form">
+                <fieldset>
+                  <div class="form-group">
+                    <input class="form-control" placeholder="Usuario" name="username"
+                      type="text"></input>
+                  </div>
+                  <div class="form-group">
+                    <input class="form-control" placeholder="Contraseña"
+                      name="password" type="password" value=""></input>
+                  </div>
+                  <input class="btn btn-lg btn-success btn-block" type="submit"
+                    value="Iniciar sesión"></input>
+                </fieldset>
+              </form>
+            </div>
+          </div>
+          <div th:if="${(param.error)}" class="alert alert-danger mt-3">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+            <strong>No se pudo iniciar sesión: </strong>Por favor, compruebe los datos introducidos.
+          </div>
+          <div th:if="${(param.logout)}" class="alert alert-info mt-3">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+            <strong>Se ha cerrado la sesión</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script th:src="@{/webjars/jquery/3.2.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/1.12.5/dist/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.0.0-beta-1/js/bootstrap.min.js}"></script>
+    
+  </body>
+</html>

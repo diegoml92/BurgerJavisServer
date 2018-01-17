@@ -3,21 +3,37 @@
  * Burger Javi's Server
  */
 
-package com.burgerjavis;
+package com.burgerjavis.rest;
+
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.burgerjavis.Common.OrderState;
+import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.entities.Order;
@@ -29,11 +45,16 @@ import com.burgerjavis.repositories.IngredientRepository;
 import com.burgerjavis.repositories.OrderRepository;
 import com.burgerjavis.repositories.ProductRepository;
 import com.burgerjavis.repositories.UserRepository;
+import com.burgerjavis.util.UnitTestUtil;
+import com.burgerjavis.util.UnitTestUtil.UserRole;
 
-@Component
-public class DatabaseLoader {
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes={MongoTestConfiguration.class})
+@WebAppConfiguration
+public class BurgerJavisServerRestSummaryTest {
 	
-	// REQUIRED REPOSITORIES
+	@Autowired
+	private WebApplicationContext context;
 	@Autowired
 	private MongoTemplate mongoTemplate;
 	@Autowired
@@ -47,17 +68,52 @@ public class DatabaseLoader {
 	@Autowired
 	private UserRepository userRepository;
 	
-	@PostConstruct
-	private void initDatabase() {
+	private MockMvc mockMvc;
+
+	@Before
+	public void setUp() throws Exception {
 		mongoTemplate.getDb().dropDatabase();
+		mockMvc = MockMvcBuilders.webAppContextSetup(context)
+					.apply(springSecurity())
+					.build();
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		mongoTemplate.getDb().dropDatabase();
+	}
+	
+	@Test
+	public void testGetSummaryData() throws Exception {
 		
-		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority(Common.WAITER_ROLE) };
-		GrantedAuthority [] roles2 = { new SimpleGrantedAuthority(Common.ADMIN_ROLE) };
-		GrantedAuthority [] roles3 = { new SimpleGrantedAuthority(Common.KITCHEN_ROLE) };
+		// Authentication-Authorization
+		final String USERNAME = "user1";
+		final String PASSWORD = "pass";
+		final String USERNAME2 = "admin";
+		final String PASSWORD2 = "admin";
+		final String USERNAME3 = "user2";
+		final String PASSWORD3 = "pass";
+		User user1 = UnitTestUtil.generateUser (USERNAME, PASSWORD, UserRole.ROLE_WAITER);
+		User admin = UnitTestUtil.generateUser (USERNAME2, PASSWORD2, UserRole.ROLE_ADMIN);
+		User user2 = UnitTestUtil.generateUser(USERNAME3, PASSWORD3, UserRole.ROLE_KITCHEN);
+		userRepository.save(user1);
+		userRepository.save(admin);
+		userRepository.save(user2);
 		
-		userRepository.save(new User("user1", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles1)));
-		userRepository.save(new User("user2", new BCryptPasswordEncoder().encode("pass"), Arrays.asList(roles3)));
-		userRepository.save(new User("admin", new BCryptPasswordEncoder().encode("admin"), Arrays.asList(roles2)));
+		RequestPostProcessor httpBasicHeader = httpBasic(USERNAME, PASSWORD);
+		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(USERNAME2, PASSWORD2);
+		RequestPostProcessor httpBasicHeaderUser2 = httpBasic(USERNAME3, PASSWORD3);
+		RequestPostProcessor wrongHeader = httpBasic(USERNAME, PASSWORD2);
+		
+		mockMvc.perform(get("/appclient/summary").with(wrongHeader))
+			.andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/appclient/summary").with(httpBasicHeader))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/appclient/summary").with(httpBasicHeaderUser2))
+			.andExpect(status().isForbidden());
+		mockMvc.perform(get("/appclient/summary").with(httpBasicHeaderAdmin))
+			.andExpect(status().isNoContent());
+		// End Authentication-Authorization
 		
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
 		Ingredient i1 = ingredientRepository.save(new Ingredient("Carne"));
@@ -114,7 +170,11 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi2 = Arrays.asList(oi2_0, oi2_1, oi2_2);
 		
-		orderRepository.save(new Order("Mesa 3", oi2, "admin"));
+		orderRepository.save(new Order("Mesa 3", oi2, "user2"));
+		
+		// There is not info since there are not finished orders
+		mockMvc.perform(get("/appclient/summary").with(httpBasicHeaderAdmin))
+			.andExpect(status().isNoContent());
 		
 		OrderItem oi3_0 = new OrderItem(p9, 2);
 		OrderItem oi3_1 = new OrderItem(p3, 2);
@@ -132,16 +192,21 @@ public class DatabaseLoader {
 		
 		List<OrderItem> oi4 = Arrays.asList(oi4_0, oi4_1, oi4_2, oi4_3, oi4_4, oi4_5);
 		
-		orderRepository.save(new Order("Mesa 5", oi4, OrderState.FINISHED, "admin"));
+		orderRepository.save(new Order("Mesa 5", oi4, OrderState.FINISHED, "user2"));
 		
-		OrderItem oi5_0 = new OrderItem(p0, 5);
-		OrderItem oi5_1 = new OrderItem(p1, 3);
-		OrderItem oi5_2 = new OrderItem(p2, 8);
-		
-		List<OrderItem> oi5 = Arrays.asList(oi5_0, oi5_1, oi5_2);
-		
-		orderRepository.save(new Order("Mesa 6", oi5, OrderState.KITCHEN, "user1"));
+		// Check retrieved summary data is correct
+		mockMvc.perform(get("/appclient/summary").with(httpBasicHeaderAdmin))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.profits", closeTo(62.65, UnitTestUtil.DELTA_ERROR)))
+			.andExpect(jsonPath("$.completedOrders", is(2)))
+			.andExpect(jsonPath("$.topCategories", hasSize(5)))
+			.andExpect(jsonPath("$.topProducts[0]", hasSize(2)))
+			.andExpect(jsonPath("$.topProducts[1]", hasSize(1)))
+			.andExpect(jsonPath("$.topProducts[2]", hasSize(1)))
+			.andExpect(jsonPath("$.topProducts[3]", hasSize(1)))
+			.andExpect(jsonPath("$.topProducts[4]", hasSize(2)));
 		
 	}
-
+	
 }
