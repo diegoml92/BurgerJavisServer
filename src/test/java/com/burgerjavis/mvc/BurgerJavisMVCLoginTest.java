@@ -40,7 +40,7 @@ public class BurgerJavisMVCLoginTest {
 	private StringBuffer verificationErrors = new StringBuffer();
 	
 	@BeforeClass public static void setupClass() {
-		ChromeDriverManager.getInstance().version("2.34").setup();
+		ChromeDriverManager.getInstance().setup();
 		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
 	} 
 
