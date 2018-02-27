@@ -23,8 +23,5 @@ public final class ValidationPatterns {
 	
 	public static final Pattern CATEGORY_NAME_PATTERN =
 			Pattern.compile(".*");
-	
-	public static final Pattern CATEGORY_ICON_PATTERN =
-			Pattern.compile(".*");
 
 }

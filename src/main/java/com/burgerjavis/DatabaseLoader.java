@@ -72,11 +72,11 @@ public class DatabaseLoader {
 		Ingredient i10 = ingredientRepository.save(new Ingredient("Atun"));
 		Ingredient i11 = ingredientRepository.save(new Ingredient("Tomate"));
 				
-		Category c0 = categoryRepository.save(new Category("Bebida", "beverage"));
-		Category c1 = categoryRepository.save(new Category("Hamburguesas", "burger"));
-		Category c2 = categoryRepository.save(new Category("Cafe/Te/Infusiones", "coffee"));
-		Category c3 = categoryRepository.save(new Category("Ensaladas", "salad"));
-		Category c4 = categoryRepository.save(new Category("Tostas", "toast"));
+		Category c0 = categoryRepository.save(new Category("Bebida"));
+		Category c1 = categoryRepository.save(new Category("Hamburguesas"));
+		Category c2 = categoryRepository.save(new Category("Cafe/Te/Infusiones"));
+		Category c3 = categoryRepository.save(new Category("Ensaladas"));
+		Category c4 = categoryRepository.save(new Category("Tostas"));
 				
 		Product p0 = productRepository.save(new Product("Hamburguesa", 4.50f, c1, Arrays.asList(i0, i1, i2, i3, i4, i5)));
 		Product p1 = productRepository.save(new Product("Sandwich", 3.50f, Arrays.asList(i0, i3, i5)));

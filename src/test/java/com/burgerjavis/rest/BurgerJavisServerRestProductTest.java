@@ -114,7 +114,7 @@ public class BurgerJavisServerRestProductTest {
 		
 		//Initialize database
 		Product p1 = new Product("Burger", 4.5f);
-		Category category = new Category("Sandwiches", "sandwich");
+		Category category = new Category("Sandwiches");
 		Product p2 = new Product("Sandwich", 5.0f, category);
 		productRepository.save(p1);
 		productRepository.save(p2);
@@ -168,7 +168,7 @@ public class BurgerJavisServerRestProductTest {
 		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
-		Category category = new Category("Sandwiches", "sandwich");
+		Category category = new Category("Sandwiches");
 		Product p2 = new Product("Sandwich", 5.0f, category);
 		productRepository.save(p1);
 		productRepository.save(p2);
@@ -232,7 +232,7 @@ public class BurgerJavisServerRestProductTest {
 		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
-		Category category = new Category("Sandwiches", "sandwich");
+		Category category = new Category("Sandwiches");
 		Product p2 = new Product("Sandwich", 5.0f, category);
 		productRepository.save(p1);
 		productRepository.save(p2);
@@ -251,12 +251,11 @@ public class BurgerJavisServerRestProductTest {
 			.andExpect(jsonPath("$.name", is(modifiedProduct1.getName())))
 			.andExpect(jsonPath("$.price", is((double)modifiedProduct1.getPrice())))
 			.andExpect(jsonPath("$.category.name", is(modifiedProduct1.getCategory().getName())))
-			.andExpect(jsonPath("$.category.icon", is(modifiedProduct1.getCategory().getIcon())))
 			.andExpect(jsonPath("$.ingredients", hasSize(modifiedProduct1.getIngredients().size())));
 		
 		// Modify p1
 		Product modifiedProduct2 = new Product(p1);
-		modifiedProduct2.setCategory(new Category("Burgers", "burger", true));
+		modifiedProduct2.setCategory(new Category("Burgers", true));
 		
 		// Product referenced by given id is modified
 		mockMvc.perform(put("/appclient/products/" + p1.get_id())
@@ -268,7 +267,6 @@ public class BurgerJavisServerRestProductTest {
 			.andExpect(jsonPath("$.name", is(modifiedProduct2.getName())))
 			.andExpect(jsonPath("$.price", is((double)modifiedProduct2.getPrice())))
 			.andExpect(jsonPath("$.category.name", is(modifiedProduct2.getCategory().getName())))
-			.andExpect(jsonPath("$.category.icon", is(modifiedProduct2.getCategory().getIcon())))
 			.andExpect(jsonPath("$.ingredients", hasSize(modifiedProduct2.getIngredients().size())));
 		
 		// Product list is obtained
@@ -278,7 +276,7 @@ public class BurgerJavisServerRestProductTest {
 			.andExpect(jsonPath("$", hasSize(2)));
 		
 		// Create new products
-		Category category2 = new Category("Drinks", "drink", false);
+		Category category2 = new Category("Drinks", false);
 		Product p3 = new Product("Coke", 2.20f, category2);
 		Product p4 = new Product("Water", 1.5f, category2);
 		p3 = productRepository.save(p3);
@@ -346,7 +344,7 @@ public class BurgerJavisServerRestProductTest {
 		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
-		Category category = new Category("Sandwiches", "sandwich");
+		Category category = new Category("Sandwiches");
 		Product p2 = new Product("Sandwich", 5.0f, category);
 		productRepository.save(p1);
 		productRepository.save(p2);
@@ -408,7 +406,7 @@ public class BurgerJavisServerRestProductTest {
 		
 		// Initialize database
 		Product p1 = new Product("Burger", 4.5f);
-		Category category = new Category("Sandwiches", "sandwich");
+		Category category = new Category("Sandwiches");
 		Product p2 = new Product("Sandwich", 5.0f, category);
 		productRepository.save(p1);
 		productRepository.save(p2);
@@ -441,7 +439,6 @@ public class BurgerJavisServerRestProductTest {
 			.andExpect(jsonPath("$.name", is(p5.getName())))
 			.andExpect(jsonPath("$.price", is((double)p5.getPrice())))
 			.andExpect(jsonPath("$.category.name", is(p5.getCategory().getName())))
-			.andExpect(jsonPath("$.category.icon", is(p5.getCategory().getIcon())))
 			.andExpect(jsonPath("$.ingredients", hasSize(p5.getIngredients().size())));
 		
 		// Obtain the product lit and check that every product has been added

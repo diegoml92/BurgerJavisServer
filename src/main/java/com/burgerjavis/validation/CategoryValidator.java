@@ -13,12 +13,8 @@ public class CategoryValidator {
 		return ValidationPatterns.CATEGORY_NAME_PATTERN.matcher(name).matches();
 	}
 	
-	private static boolean validateCategoryIcon(String icon) {
-		return ValidationPatterns.CATEGORY_ICON_PATTERN.matcher(icon).matches();
-	}
-	
 	public static boolean validateCategory(Category category) {
-		return validateCategoryName(category.getName()) && validateCategoryIcon(category.getIcon());
+		return validateCategoryName(category.getName());
 	}
 
 }
