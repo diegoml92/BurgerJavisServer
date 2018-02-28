@@ -5,7 +5,6 @@
 
 package com.burgerjavis.rest;
 
-import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -107,7 +106,7 @@ public class BurgerJavisServerRestIngredientTest {
 		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
-		Ingredient i2 = new Ingredient("Cheese", 0.25f);
+		Ingredient i2 = new Ingredient("Cheese");
 		ingredientRepository.save(i1);
 		ingredientRepository.save(i2);
 		
@@ -118,10 +117,8 @@ public class BurgerJavisServerRestIngredientTest {
 	    	.andExpect(jsonPath("$", hasSize(2)))
 	    	.andExpect(jsonPath("$[0]._id", is(i1.get_id())))
 	    	.andExpect(jsonPath("$[0].name", is(i1.getName())))
-	    	.andExpect(jsonPath("$[0].extraPrice", is((double)i1.getExtraPrice())))
 	    	.andExpect(jsonPath("$[1]._id", is(i2.get_id())))
-	    	.andExpect(jsonPath("$[1].name", is(i2.getName())))
-	    	.andExpect(jsonPath("$[1].extraPrice", is((double)i2.getExtraPrice())));
+	    	.andExpect(jsonPath("$[1].name", is(i2.getName())));
 	}
 
 	@Test
@@ -158,7 +155,7 @@ public class BurgerJavisServerRestIngredientTest {
 		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
-		Ingredient i2 = new Ingredient("Cheese", 0.25f);
+		Ingredient i2 = new Ingredient("Cheese");
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
@@ -167,8 +164,7 @@ public class BurgerJavisServerRestIngredientTest {
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(i2.get_id())))
-			.andExpect(jsonPath("$.name", is(i2.getName())))
-			.andExpect(jsonPath("$.extraPrice", is((double)i2.getExtraPrice())));
+			.andExpect(jsonPath("$.name", is(i2.getName())));
 	}
 
 	@Test
@@ -217,13 +213,12 @@ public class BurgerJavisServerRestIngredientTest {
 		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
-		Ingredient i2 = new Ingredient("Cheese", 0.25f);
+		Ingredient i2 = new Ingredient("Cheese");
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
 		// Modify i1
 		Ingredient modifiedIngredient1 = new Ingredient(i1);
-		modifiedIngredient1.setExtraPrice(0.20f);
 		
 		// Ingredient with given id is modified
 		mockMvc.perform(put("/appclient/ingredients/" + i1.get_id())
@@ -232,9 +227,7 @@ public class BurgerJavisServerRestIngredientTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(i1.get_id())))
-			.andExpect(jsonPath("$.name", is(modifiedIngredient1.getName())))
-			.andExpect(jsonPath("$.extraPrice", closeTo((double)modifiedIngredient1.getExtraPrice(), 
-														UnitTestUtil.DELTA_ERROR)));
+			.andExpect(jsonPath("$.name", is(modifiedIngredient1.getName())));
 		
 		// Modify p2
 		Ingredient modifiedIngredient2 = new Ingredient(i2);
@@ -247,8 +240,7 @@ public class BurgerJavisServerRestIngredientTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(i2.get_id())))
-			.andExpect(jsonPath("$.name", is(modifiedIngredient2.getName())))
-			.andExpect(jsonPath("$.extraPrice", is((double)modifiedIngredient2.getExtraPrice())));
+			.andExpect(jsonPath("$.name", is(modifiedIngredient2.getName())));
 		
 		// Obtain ingredient list and check ingredients are correctly modified
 		mockMvc.perform(get("/appclient/ingredients").with(httpBasicHeaderAdmin))
@@ -257,7 +249,7 @@ public class BurgerJavisServerRestIngredientTest {
 			.andExpect(jsonPath("$", hasSize(2)));
 		
 		// Create new ingredients
-		Ingredient i3 = new Ingredient("Bacon", 0.30f);
+		Ingredient i3 = new Ingredient("Bacon");
 		Ingredient i4 = new Ingredient("Lettuce");
 		i3 = ingredientRepository.save(i3);
 		i4 = ingredientRepository.save(i4);
@@ -269,16 +261,6 @@ public class BurgerJavisServerRestIngredientTest {
 		mockMvc.perform(put("/appclient/ingredients/" + i3.get_id())
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient3))
-					.with(httpBasicHeaderAdmin))
-			.andExpect(status().isNotAcceptable());
-		
-		Ingredient modifiedIngredient4 = new Ingredient(i4);
-		modifiedIngredient4.setExtraPrice(-0.4f);
-		
-		// The price is invalid
-		mockMvc.perform(put("/appclient/ingredients/" + i4.get_id())
-				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
-				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient4))
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotAcceptable());
 		
@@ -327,7 +309,7 @@ public class BurgerJavisServerRestIngredientTest {
 		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
-		Ingredient i2 = new Ingredient("Cheese", 0.25f);
+		Ingredient i2 = new Ingredient("Cheese");
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
@@ -341,8 +323,7 @@ public class BurgerJavisServerRestIngredientTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$", hasSize(1)))
 			.andExpect(jsonPath("$[0]._id", is(i2.get_id())))
-			.andExpect(jsonPath("$[0].name", is(i2.getName())))
-			.andExpect(jsonPath("$[0].extraPrice", is((double)i2.getExtraPrice())));	
+			.andExpect(jsonPath("$[0].name", is(i2.getName())));
 	}
 
 	@Test
@@ -391,7 +372,7 @@ public class BurgerJavisServerRestIngredientTest {
 		
 		//Initialize database
 		Ingredient i1 = new Ingredient("Tomato");
-		Ingredient i2 = new Ingredient("Cheese", 0.25f);
+		Ingredient i2 = new Ingredient("Cheese");
 		i1 = ingredientRepository.save(i1);
 		i2 = ingredientRepository.save(i2);
 		
@@ -412,14 +393,13 @@ public class BurgerJavisServerRestIngredientTest {
 			.andExpect(status().isNotAcceptable());
 		
 		// This ingredient is correctly created
-		Ingredient i5 = new Ingredient("Bacon", 0.40f);
+		Ingredient i5 = new Ingredient("Bacon");
 		mockMvc.perform(post("/appclient/ingredients")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(i5))
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.name", is(i5.getName())))
-			.andExpect(jsonPath("$.extraPrice", closeTo((double)i5.getExtraPrice(),UnitTestUtil.DELTA_ERROR)));
+			.andExpect(jsonPath("$.name", is(i5.getName())));
 		
 		// Obtain ingredient list and check ingredients were correctly created
 		mockMvc.perform(get("/appclient/ingredients").with(httpBasicHeaderAdmin))

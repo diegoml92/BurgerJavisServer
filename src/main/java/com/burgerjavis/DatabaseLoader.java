@@ -62,10 +62,10 @@ public class DatabaseLoader {
 		Ingredient i0 = ingredientRepository.save(new Ingredient("Pan"));
 		Ingredient i1 = ingredientRepository.save(new Ingredient("Carne"));
 		Ingredient i2 = ingredientRepository.save(new Ingredient("Lechuga"));
-		Ingredient i3 = ingredientRepository.save(new Ingredient("Queso", 0.20f));
+		Ingredient i3 = ingredientRepository.save(new Ingredient("Queso"));
 		Ingredient i4 = ingredientRepository.save(new Ingredient("Tomate"));
 		Ingredient i5 = ingredientRepository.save(new Ingredient("Jamon York"));
-		Ingredient i6 = ingredientRepository.save(new Ingredient("Jamon Serrano", 0.50f));
+		Ingredient i6 = ingredientRepository.save(new Ingredient("Jamon Serrano"));
 		Ingredient i7 = ingredientRepository.save(new Ingredient("Aceitunas"));
 		Ingredient i8 = ingredientRepository.save(new Ingredient("Cebolla"));
 		Ingredient i9 = ingredientRepository.save(new Ingredient("Pepinillo"));

@@ -33,7 +33,6 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.repositories.IngredientRepository;
-import com.burgerjavis.util.UnitTestUtil;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -82,14 +81,10 @@ public class BurgerJavisMVCIngredientTest {
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Nuevo ingrediente");
-		driver.findElement(By.id("inputExtraPrice")).click();
-		driver.findElement(By.id("inputExtraPrice")).clear();
-		driver.findElement(By.id("inputExtraPrice")).sendKeys("0.10");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
 		Ingredient ingredient = ingredientRepository.findByNameIgnoreCase("Nuevo Ingrediente").get(0);
 		assertNotNull(ingredient);
-		assertEquals(ingredient.getExtraPrice(), 0.10, UnitTestUtil.DELTA_ERROR);
 		
 		// Ingredient with name being used
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
@@ -141,26 +136,18 @@ public class BurgerJavisMVCIngredientTest {
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Carnecita");
-		driver.findElement(By.id("inputExtraPrice")).click();
-		driver.findElement(By.id("inputExtraPrice")).clear();
-		driver.findElement(By.id("inputExtraPrice")).sendKeys("0.80");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		List<Ingredient> ingredients = ingredientRepository.findByNameIgnoreCase("Carnecita");
 		assertEquals(ingredients.size(), 1);
-		assertEquals(ingredients.get(0).getExtraPrice(), 0.80, UnitTestUtil.DELTA_ERROR);
 		
 		// Discard changes
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='ingredients']/div/div/a[3]/span")).click();
 		driver.findElement(By.id("inputName")).click();
-		driver.findElement(By.id("inputExtraPrice")).click();
-		driver.findElement(By.id("inputExtraPrice")).clear();
-		driver.findElement(By.id("inputExtraPrice")).sendKeys("0.20");
 		driver.findElement(By.linkText("Descartar cambios")).click();
 		List<Ingredient> ingredients2 = ingredientRepository.findByNameIgnoreCase("Lechuga");
 		assertEquals(ingredients2.size(), 1);
-		assertEquals(ingredients2.get(0).getExtraPrice(), 0.0, UnitTestUtil.DELTA_ERROR);
 		
 		// Ingredient with name being used
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
@@ -178,13 +165,7 @@ public class BurgerJavisMVCIngredientTest {
 		driver.findElement(By.id("inputName")).sendKeys(" ");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
-		
-		// Ingredient with invalid price
-		driver.findElement(By.id("inputExtraPrice")).click();
-		driver.findElement(By.id("inputExtraPrice")).clear();
-		driver.findElement(By.id("inputExtraPrice")).sendKeys("-0.20");
-		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
+
 	}
 	
 	@Test

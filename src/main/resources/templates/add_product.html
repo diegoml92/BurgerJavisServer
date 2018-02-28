@@ -69,7 +69,6 @@
 		<div th:each="ingredient, i : *{ingredients}">
 		  <input type="hidden" th:field="*{ingredients[__${i.index}__].id}"/>
 		  <input type="hidden" th:field="*{ingredients[__${i.index}__].name}"/>
-		  <input type="hidden" th:field="*{ingredients[__${i.index}__].extraPrice}"/>
 		</div>
 		<button type="submit" class="btn btn-primary">Crear producto</button>
 		<a class="btn btn-danger" th:href="@{/}">Cancelar</a>
