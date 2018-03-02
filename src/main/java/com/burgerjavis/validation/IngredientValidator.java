@@ -13,13 +13,8 @@ public class IngredientValidator {
 		return ValidationPatterns.INGREDIENT_NAME_PATTERN.matcher(name).matches();
 	}
 	
-	private static boolean validateIngredientExtraPrice(float extraPrice) {
-		return extraPrice >= 0.0;
-	}
-	
 	public static boolean validateIngredient(Ingredient ingredient) {
-		return validateIngredientName(ingredient.getName()) && 
-				validateIngredientExtraPrice(ingredient.getExtraPrice());
+		return validateIngredientName(ingredient.getName());
 	}
 
 }

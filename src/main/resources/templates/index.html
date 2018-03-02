@@ -171,8 +171,6 @@
                 <a class="list-group-item list-group-item-action" th:each="ingredient : ${ingredients}" 
                 	th:href="@{/webclient/ingredient/get(id=${ingredient.get_id()})}">
                   <span class="h3" th:text="${ingredient.getName()}"></span>
-                  <span class="badge badge-primary badge-pill float-right" 
-                  		th:text="'+' + ${#numbers.formatDecimal(ingredient.getExtraPrice(),1,'DEFAULT',2,'DEFAULT') + '€'}"></span>
                 </a>
               </div>
             </div>

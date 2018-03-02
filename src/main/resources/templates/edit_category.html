@@ -60,7 +60,6 @@
 		    <input type="checkbox" th:checked="${category.isFavorite()}" name="favorite" id="inputFav"/>
 		  </div>
 		</div>
-		<input type="hidden" th:field="*{icon}"/>
 		<button type="submit" class="btn btn-primary">Guardar cambios</button>
 		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
 	  </form>

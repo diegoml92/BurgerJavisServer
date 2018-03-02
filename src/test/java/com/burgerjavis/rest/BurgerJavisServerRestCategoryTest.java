@@ -105,8 +105,8 @@ public class BurgerJavisServerRestCategoryTest {
 		// End Authentication-Authorization
 		
 		//Initialize database
-		Category c1 = new Category("Burgers", "burger", false);
-		Category c2 = new Category("Sandwiches", "sandwich", true);
+		Category c1 = new Category("Burgers", false);
+		Category c2 = new Category("Sandwiches", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
@@ -117,11 +117,9 @@ public class BurgerJavisServerRestCategoryTest {
 	    	.andExpect(jsonPath("$", hasSize(2)))
 	    	.andExpect(jsonPath("$[0]._id", is(c1.get_id())))
 	    	.andExpect(jsonPath("$[0].name", is(c1.getName())))
-	    	.andExpect(jsonPath("$[0].icon", is(c1.getIcon())))
 	    	.andExpect(jsonPath("$[0].favorite", is(c1.isFavorite())))
 			.andExpect(jsonPath("$[1]._id", is(c2.get_id())))
 	    	.andExpect(jsonPath("$[1].name", is(c2.getName())))
-	    	.andExpect(jsonPath("$[1].icon", is(c2.getIcon())))
 	    	.andExpect(jsonPath("$[1].favorite", is(c2.isFavorite())));
 		
 	}
@@ -159,8 +157,8 @@ public class BurgerJavisServerRestCategoryTest {
 		// End Authentication-Authorization
 		
 		// Initialize database
-		Category c1 = new Category("Burgers", "burger", false);
-		Category c2 = new Category("Sandwiches", "sandwich", true);
+		Category c1 = new Category("Burgers", false);
+		Category c2 = new Category("Sandwiches", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
@@ -170,7 +168,6 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$._id", is(c2.get_id())))
 			.andExpect(jsonPath("$.name", is(c2.getName())))
-			.andExpect(jsonPath("$.icon", is(c2.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(c2.isFavorite())));
 		
 	}
@@ -224,14 +221,13 @@ public class BurgerJavisServerRestCategoryTest {
 		
 		
 		//Initialize database
-		Category c1 = new Category("Burgers", "burger", false);
-		Category c2 = new Category("Sandwiches", "sandwich", true);
+		Category c1 = new Category("Burgers", false);
+		Category c2 = new Category("Sandwiches", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
 		// Modify c1
 		Category modifiedCategory1 = new Category(c1);
-		modifiedCategory1.setIcon("otherIcon");
 		modifiedCategory1.setFavorite(true);
 		
 		// There is no category with such id
@@ -249,7 +245,6 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(c1.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedCategory1.getName())))
-			.andExpect(jsonPath("$.icon", is(modifiedCategory1.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(modifiedCategory1.isFavorite())));
 		
 		// Modify p2
@@ -264,7 +259,6 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$._id", is(c2.get_id())))
 			.andExpect(jsonPath("$.name", is(modifiedCategory2.getName())))
-			.andExpect(jsonPath("$.icon", is(modifiedCategory2.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(modifiedCategory2.isFavorite())));
 		
 		// Obtain category list and check categories are correctly modified
@@ -274,8 +268,8 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(jsonPath("$", hasSize(2)));
 		
 		// Create new categories
-		Category c3 = new Category("Drinks", "beverage", true);
-		Category c4 = new Category("Coffees", "coffee", false);
+		Category c3 = new Category("Drinks", true);
+		Category c4 = new Category("Coffees", false);
 		c3 = categoryRepository.save(c3);
 		c4 = categoryRepository.save(c4);
 		
@@ -340,8 +334,8 @@ public class BurgerJavisServerRestCategoryTest {
 		// End Authentication-Authorization
 		
 		// Initialize database
-		Category c1 = new Category("Burgers", "burger", false);
-		Category c2 = new Category("Sandwiches", "sandwich", true);
+		Category c1 = new Category("Burgers", false);
+		Category c2 = new Category("Sandwiches", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
@@ -356,7 +350,6 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(jsonPath("$", hasSize(1)))
 			.andExpect(jsonPath("$[0]._id", is(c2.get_id())))
 			.andExpect(jsonPath("$[0].name", is(c2.getName())))
-			.andExpect(jsonPath("$[0].icon", is(c2.getIcon())))
 			.andExpect(jsonPath("$[0].favorite", is(c2.isFavorite())));
 	}
 
@@ -408,13 +401,13 @@ public class BurgerJavisServerRestCategoryTest {
 		// End Authentication-Authorization
 		
 		//Initialize database
-		Category c1 = new Category("Burgers", "burger", true);
-		Category c2 = new Category("Sandwiches", "sandwich", true);
+		Category c1 = new Category("Burgers", true);
+		Category c2 = new Category("Sandwiches", true);
 		c1 = categoryRepository.save(c1);
 		c2 = categoryRepository.save(c2);
 		
 		// A category with this name already exists
-		Category c3 = new Category("burgers", "drink", false);
+		Category c3 = new Category("burgers", false);
 		mockMvc.perform(post("/appclient/categories")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(c3))
@@ -422,14 +415,13 @@ public class BurgerJavisServerRestCategoryTest {
 			.andExpect(status().isNotAcceptable());
 		
 		// This category is correctly created
-		Category c4 = new Category("Pizzas", "pizza", true);
+		Category c4 = new Category("Pizzas", true);
 		mockMvc.perform(post("/appclient/categories")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(c4))
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.name", is(c4.getName())))
-			.andExpect(jsonPath("$.icon", is(c4.getIcon())))
 			.andExpect(jsonPath("$.favorite", is(c4.isFavorite())));
 		
 		// Obtain category list and check categories were correctyl added

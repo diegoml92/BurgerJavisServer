@@ -13,37 +13,29 @@ public class Category {
 	private String _id;
 	
 	private String name;
-	private String icon;
 	private boolean favorite;
 	
 	public Category(Category category) {
 		this._id = category._id;
 		this.name = category.name;
-		this.icon = category.icon;
 		this.favorite = category.favorite;
 	}
 	
-	public Category(String name, String icon, boolean favorite) {
+	public Category(String name, boolean favorite) {
 		this.name = name;
-		this.icon = icon;
 		this.favorite = favorite;
 	}
 	
-	public Category(String name, String icon) {
-		this(name, icon, false);
-	}
-	
 	public Category(String name) {
-		this(name, "", false);
+		this(name, false);
 	}
 	
 	public Category() {
-		this("", "", false);
+		this("", false);
 	}
 	
 	public void updateCategory(Category category) {
 		this.name = category.name;
-		this.icon = category.icon;
 		this.favorite = category.favorite;
 	}
 	
@@ -63,14 +55,6 @@ public class Category {
 		this.name = name;
 	}
 	
-	public String getIcon() {
-		return icon;
-	}
-	
-	public void setIcon(String icon) {
-		this.icon = icon;
-	}
-	
 	public boolean isFavorite() {
 		return favorite;
 	}
@@ -80,7 +64,7 @@ public class Category {
 	}
 	
 	public String toString () {
-		return this.name + " (" + this.icon + ") " + this.favorite;
+		return this.name + " " + this.favorite;
 	}
 
 }
