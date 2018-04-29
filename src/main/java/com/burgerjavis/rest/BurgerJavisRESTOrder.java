@@ -22,6 +22,7 @@ import com.burgerjavis.Common;
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Order;
 import com.burgerjavis.repositories.OrderRepository;
+import com.burgerjavis.repositories.UserRepository;
 import com.burgerjavis.validation.OrderValidator;
 
 
@@ -32,6 +33,8 @@ public class BurgerJavisRESTOrder {
 	// REQUIRED SERVICES
 	@Autowired
 	private OrderRepository orderRepository;
+	@Autowired
+	private UserRepository userRepository;
 	
 	  
 	// ORDER HANDLER
@@ -42,8 +45,12 @@ public class BurgerJavisRESTOrder {
 	public ResponseEntity<List<Order>> getOrders(Principal principal) {
 		List<Order> orders = null;
 		try {
-			orders = (List<Order>) orderRepository.
+			if(!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
+				orders = (List<Order>) orderRepository.
 					findByUsernameIgnoreCaseAndStateIsNot(principal.getName(), OrderState.FINISHED);
+			} else {
+				orders = (List<Order>) orderRepository.findByStateIsNot(OrderState.FINISHED);
+			}
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<List<Order>>(orders, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -60,7 +67,8 @@ public class BurgerJavisRESTOrder {
 			if(order == null) {
 				return new ResponseEntity<Order>(order, HttpStatus.NOT_FOUND);
 			}
-			if(!order.getUsername().equalsIgnoreCase(principal.getName())) {
+			if(!order.getUsername().equalsIgnoreCase(principal.getName()) &&
+					!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
 				return new ResponseEntity<Order>(order, HttpStatus.UNAUTHORIZED);
 			}
 			if(order.isState(OrderState.FINISHED)) {
@@ -84,7 +92,8 @@ public class BurgerJavisRESTOrder {
 				// Order not found
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_FOUND);
 			}
-			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName())) {
+			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName()) &&
+					!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
 				// Unauthorized user
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
 			}
@@ -129,7 +138,8 @@ public class BurgerJavisRESTOrder {
 			if(currentOrder == null) {
 				return new ResponseEntity<Boolean>(false, HttpStatus.NOT_FOUND);
 			}
-			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName())) {
+			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName()) &&
+					!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
 				// Unauthorized user
 				return new ResponseEntity<Boolean>(false, HttpStatus.UNAUTHORIZED);
 			}
