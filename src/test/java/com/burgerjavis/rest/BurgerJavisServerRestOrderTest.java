@@ -134,16 +134,21 @@ public class BurgerJavisServerRestOrderTest {
         	.andExpect(jsonPath("$[0].state", is(order1.getState().name())))
         	.andExpect(jsonPath("$[0].username",  is(order1.getUsername())));
 		
-		// Only orders belonging to "admin" that are not finished are returned
+		// All orders that are not finished are returned
 		mockMvc.perform(get("/appclient/orders").with(httpBasicHeaderAdmin))
 	    	.andExpect(status().isOk())
 	    	.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
-	    	.andExpect(jsonPath("$", hasSize(1)))
-	    	.andExpect(jsonPath("$[0]._id", is(order3.get_id())))
-	    	.andExpect(jsonPath("$[0].name", is(order3.getName())))
-	    	.andExpect(jsonPath("$[0].items", hasSize(order3.getItems().size())))
-	    	.andExpect(jsonPath("$[0].state", is(order3.getState().name())))
-	    	.andExpect(jsonPath("$[0].username",  is(order3.getUsername())));
+	    	.andExpect(jsonPath("$", hasSize(2)))
+	    	.andExpect(jsonPath("$[0]._id", is(order1.get_id())))
+	    	.andExpect(jsonPath("$[0].name", is(order1.getName())))
+	    	.andExpect(jsonPath("$[0].items", hasSize(order1.getItems().size())))
+	    	.andExpect(jsonPath("$[0].state", is(order1.getState().name())))
+	    	.andExpect(jsonPath("$[0].username",  is(order1.getUsername())))
+	    	.andExpect(jsonPath("$[1]._id", is(order3.get_id())))
+	    	.andExpect(jsonPath("$[1].name", is(order3.getName())))
+	    	.andExpect(jsonPath("$[1].items", hasSize(order3.getItems().size())))
+	    	.andExpect(jsonPath("$[1].state", is(order3.getState().name())))
+	    	.andExpect(jsonPath("$[1].username",  is(order3.getUsername())));
 
 	}
 

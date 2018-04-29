@@ -16,6 +16,8 @@ public interface OrderRepository extends CrudRepository<Order, String> {
 	
 	public List<Order> findByNameIgnoreCase (String name);
 	
+	public List<Order> findByStateIsNot (OrderState state);
+	
 	public List<Order> findByUsernameIgnoreCaseAndStateIsNot (String username, OrderState state);
 	
 	public List<Order> findByUsernameIgnoreCaseAndStateIs (String username, OrderState state);
