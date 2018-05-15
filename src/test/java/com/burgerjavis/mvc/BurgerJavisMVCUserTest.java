@@ -178,6 +178,22 @@ public class BurgerJavisMVCUserTest {
 		assertTrue(new BCryptPasswordEncoder().matches("newPass", user.getPassword()));
 		
 		// Minimum number of admins
+		testMinimumNumberOfAdmins();
+		
+		// User with empty username
+		testUserWithEmptyName();
+		
+		// User with invalid name
+		testUserWithInvalidName();
+		
+		// User with name in use
+		testUserWithNameInUse();
+		
+		// User with invalid password
+		testUserWithInvalidPassword();
+	}
+	
+	private void testMinimumNumberOfAdmins() throws Exception {
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='users']/div/div/a[3]/span")).click();
@@ -190,8 +206,9 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("role2")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("MIN_ADMINS"));
-		
-		// User with empty username
+	}
+	
+	private void testUserWithEmptyName() throws Exception {
 		driver.get("http://localhost:8080/");
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
@@ -204,8 +221,9 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pass");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
-		
-		// User with invalid name
+	}
+	
+	private void testUserWithInvalidName() throws Exception {
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Modified user");
@@ -214,8 +232,9 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pass");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
-		
-		// User with name in use
+	}
+	
+	private void testUserWithNameInUse() throws Exception {
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("admin");
@@ -224,8 +243,9 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("admin");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
-		
-		// User with invalid password
+	}
+	
+	private void testUserWithInvalidPassword() {
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("ModifiedUser");
