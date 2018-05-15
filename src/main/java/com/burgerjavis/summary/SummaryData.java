@@ -44,46 +44,7 @@ public class SummaryData {
 		for (int i = 0; i < this.topCategories.size(); i++) {
 			this.topProducts.add(new ArrayList<TopProduct>());
 		}
-		// Count the amount of every single product and calculate the profits
-		for(Order order : orders) {
-			this.profits += order.calculatePrice();
-			for(OrderItem item : order.getItems()) {
-				String productName = item.getProduct().getName();
-				int amount = item.getAmount();
-				boolean found = false;
-				int i = 0;
-				// For each category...
-				while(!found && i < this.topProducts.size()) {
-					int j = 0;
-					// ...look for the current product
-					while(!found && j < this.topProducts.get(i).size()) {
-						found = productName.equalsIgnoreCase(this.topProducts.get(i).get(j).getProductName());
-						if(found) {
-							this.topProducts.get(i).get(j).increaseAmount(amount);
-						}
-						j++;
-					}
-					i++;
-				}
-				// If the product does not exist, add it to the corresponding category
-				if(!found) {
-					boolean categoryFound = false;
-					int k = 0;
-					while (!categoryFound && k < this.topCategories.size() - 1) {
-						categoryFound = item.getProduct().getCategory().getName()
-									.equalsIgnoreCase(this.topCategories.get(k).getName());
-						if(categoryFound) {
-							this.topProducts.get(k).add(new TopProduct(productName, amount));
-						}
-						k++;
-					}
-					if(!categoryFound) {
-						this.topProducts.get(this.topCategories.size() - 1)
-							.add(new TopProduct(productName, amount));
-					}
-				}
-			}
-		}
+		calculateProfits(orders);
 		// Ignore empty categories
 		for(int index = this.topProducts.size() - 1; index >= 0; index--) {
 			if(this.topProducts.get(index).isEmpty()) {
@@ -93,6 +54,57 @@ public class SummaryData {
 				// Sort the given list
 				this.topProducts.get(index).sort((p1,p2) -> p2.getAmount() - p1.getAmount());
 			}
+		}
+	}
+	
+	private void calculateProfits(List<Order> orders) {
+		// Count the amount of every single product and calculate the profits
+		for(Order order : orders) {
+			this.profits += order.calculatePrice();
+			for(OrderItem item : order.getItems()) {
+				String productName = item.getProduct().getName();
+				Integer amount = item.getAmount();
+				// If the product does not exist, add it to the corresponding category
+				if(!countTopProducts(productName, amount)) {
+					addTopProduct(productName, amount, item);
+				}
+			}
+		}
+	}
+	
+	private boolean countTopProducts(String productName, Integer amount) {
+		boolean found = false;
+		int i = 0;
+		// For each category...
+		while(!found && i < this.topProducts.size()) {
+			int j = 0;
+			// ...look for the current product
+			while(!found && j < this.topProducts.get(i).size()) {
+				found = productName.equalsIgnoreCase(this.topProducts.get(i).get(j).getProductName());
+				if(found) {
+					this.topProducts.get(i).get(j).increaseAmount(amount);
+				}
+				j++;
+			}
+			i++;
+		}
+		return found;
+	}
+	
+	private void addTopProduct(String productName, int amount, OrderItem item) {
+		boolean categoryFound = false;
+		int k = 0;
+		while (!categoryFound && k < this.topCategories.size() - 1) {
+			categoryFound = item.getProduct().getCategory().getName()
+						.equalsIgnoreCase(this.topCategories.get(k).getName());
+			if(categoryFound) {
+				this.topProducts.get(k).add(new TopProduct(productName, amount));
+			}
+			k++;
+		}
+		if(!categoryFound) {
+			this.topProducts.get(this.topCategories.size() - 1)
+				.add(new TopProduct(productName, amount));
 		}
 	}
 	
