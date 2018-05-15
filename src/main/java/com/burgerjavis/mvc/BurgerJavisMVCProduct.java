@@ -86,15 +86,9 @@ public class BurgerJavisMVCProduct {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		// Check if name is modified
-		if(!modProduct.getName().equalsIgnoreCase(currentProduct.getName())) {
-			// Name has been modified
-			if(productRepository.findByNameIgnoreCase(modProduct.getName()).size() > 0) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				ProductWrapper productWrapper = new ProductWrapper();
-				productWrapper.wrapInternalType(currentProduct);
-				return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
-						addObject("error", new ErrorText(errorText, cause));
-			}
+		ModelAndView result = checkNameModified(currentProduct, modProduct, categories, errorText);
+		if (result != null) {
+			return result;
 		}
 		currentProduct.updateProduct(modProduct);
 		productRepository.save(currentProduct);
@@ -115,5 +109,20 @@ public class BurgerJavisMVCProduct {
 		}
 		productRepository.delete(currentProduct);
 		return new ModelAndView("redirect:/");
+	}
+	
+	private ModelAndView checkNameModified(Product currentProduct, Product modProduct,
+			List<Category> categories, String errorText) {
+		if(!modProduct.getName().equalsIgnoreCase(currentProduct.getName())) {
+			// Name has been modified
+			if(productRepository.findByNameIgnoreCase(modProduct.getName()).size() > 0) {
+				ErrorCause cause = ErrorCause.NAME_IN_USE;
+				ProductWrapper productWrapper = new ProductWrapper();
+				productWrapper.wrapInternalType(currentProduct);
+				return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
+						addObject("error", new ErrorText(errorText, cause));
+			}
+		}
+		return null;
 	}
 }
