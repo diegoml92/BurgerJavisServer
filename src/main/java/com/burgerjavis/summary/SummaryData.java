@@ -46,15 +46,7 @@ public class SummaryData {
 		}
 		calculateProfits(orders);
 		// Ignore empty categories
-		for(int index = this.topProducts.size() - 1; index >= 0; index--) {
-			if(this.topProducts.get(index).isEmpty()) {
-				this.topProducts.remove(index);
-				this.topCategories.remove(index);
-			} else {
-				// Sort the given list
-				this.topProducts.get(index).sort((p1,p2) -> p2.getAmount() - p1.getAmount());
-			}
-		}
+		discardEmptyCategories();
 	}
 	
 	private void calculateProfits(List<Order> orders) {
@@ -68,6 +60,18 @@ public class SummaryData {
 				if(!countTopProducts(productName, amount)) {
 					addTopProduct(productName, amount, item);
 				}
+			}
+		}
+	}
+	
+	private void discardEmptyCategories () {
+		for(int index = this.topProducts.size() - 1; index >= 0; index--) {
+			if(this.topProducts.get(index).isEmpty()) {
+				this.topProducts.remove(index);
+				this.topCategories.remove(index);
+			} else {
+				// Sort the given list
+				this.topProducts.get(index).sort((p1,p2) -> p2.getAmount() - p1.getAmount());
 			}
 		}
 	}
@@ -163,14 +167,6 @@ public class SummaryData {
 
 	public void setUserSummaryData(Map<String, SummaryData> userSummaryData) {
 		this.userSummaryData = userSummaryData;
-	}
-
-	public int getCounter() {
-		return counter;
-	}
-
-	public void setCounter(int counter) {
-		this.counter = counter;
 	}
 	
 }
