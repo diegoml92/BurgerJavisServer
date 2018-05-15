@@ -53,16 +53,20 @@ public class BurgerJavisMVCHome {
 				users.add(user);
 			}
 		}
+		setUserData(users, categories, data);
+		List<Product> menu = (List<Product>) productRepository.findAll();
+		List<Ingredient> ingredients = (List<Ingredient>) ingredientRepository.findAll();
+		return new ModelAndView("index").addObject("users", allUsers).addObject("data", data).addObject("categories", categories).
+				addObject("menu", menu).addObject("ingredients", ingredients);
+	}
+	
+	private void setUserData (List<User> users, List<Category> categories, SummaryData data) {
 		for (User user : users) {
 			SummaryData userData;
 			List<Order> userOrders = orderRepository.findByUsernameIgnoreCaseAndStateIs(user.getUsername(), OrderState.FINISHED);
 			userData = userOrders.size() > 0 ? new SummaryData(userOrders, categories) : new SummaryData();
 			data.setUserData(user.getUsername(), userData);
 		}
-		List<Product> menu = (List<Product>) productRepository.findAll();
-		List<Ingredient> ingredients = (List<Ingredient>) ingredientRepository.findAll();
-		return new ModelAndView("index").addObject("users", allUsers).addObject("data", data).addObject("categories", categories).
-				addObject("menu", menu).addObject("ingredients", ingredients);
-	} 
+	}
 
 }

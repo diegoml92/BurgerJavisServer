@@ -149,24 +149,12 @@ public class SummaryData {
 		return topCategories;
 	}
 
-	public void setTopCategories(List<Category> topCategories) {
-		this.topCategories = topCategories;
-	}
-
 	public List<List<TopProduct>> getTopProducts() {
 		return topProducts;
 	}
 
-	public void setTopProducts(List<List<TopProduct>> topProducts) {
-		this.topProducts = topProducts;
-	}
-
 	public Map<String, SummaryData> getUserSummaryData() {
 		return userSummaryData;
-	}
-
-	public void setUserSummaryData(Map<String, SummaryData> userSummaryData) {
-		this.userSummaryData = userSummaryData;
 	}
 	
 }

@@ -85,15 +85,9 @@ public class BurgerJavisMVCUser {
 			}
 		}
 		// Check if name is modified
-		if(!modUser.getUsername().equalsIgnoreCase(currentUser.getUsername())) {
-			// Name has been modified
-			if(userRepository.findByUsernameIgnoreCase(modUser.getUsername()) != null) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				UserWrapper userWrapper = new UserWrapper();
-				userWrapper.wrapInternalType(currentUser);
-				return new ModelAndView("edit_user").addObject("user", userWrapper).
-						addObject("error", new ErrorText(errorText, cause));
-			}
+		ModelAndView resultName = checkNameModified(currentUser, modUser, errorText);
+		if (resultName != null) {
+			return resultName;
 		}
 		modUser.setPassword(new BCryptPasswordEncoder().encode(modUser.getPassword()));
 		currentUser.updateUser(modUser);
@@ -135,6 +129,20 @@ public class BurgerJavisMVCUser {
 			userWrapper.wrapInternalType(currentUser);
 			return new ModelAndView("edit_user").addObject("user", userWrapper).
 					addObject("error", new ErrorText(errorText, cause));
+		}
+		return null;
+	}
+	
+	private ModelAndView checkNameModified (User currentUser, User modUser, String errorText) {
+		if(!modUser.getUsername().equalsIgnoreCase(currentUser.getUsername())) {
+			// Name has been modified
+			if(userRepository.findByUsernameIgnoreCase(modUser.getUsername()) != null) {
+				ErrorCause cause = ErrorCause.NAME_IN_USE;
+				UserWrapper userWrapper = new UserWrapper();
+				userWrapper.wrapInternalType(currentUser);
+				return new ModelAndView("edit_user").addObject("user", userWrapper).
+						addObject("error", new ErrorText(errorText, cause));
+			}
 		}
 		return null;
 	}

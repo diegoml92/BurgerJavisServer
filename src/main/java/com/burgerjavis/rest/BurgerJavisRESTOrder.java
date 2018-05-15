@@ -104,22 +104,9 @@ public class BurgerJavisRESTOrder {
 				// Order not valid
 				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_ACCEPTABLE);
 			}
-			if(currentOrder.isState(OrderState.SERVED)) {
-				order = currentOrder;
-				order.setState(OrderState.FINISHED);
-			}else if(!order.getName().equalsIgnoreCase(currentOrder.getName())) {
-				// Name has been modified, check if new name is available
-				List<Order> conflictingOrders = orderRepository.findByNameIgnoreCase(order.getName());
-				boolean conflict = false;
-				int i=0;
-				while (!conflict && i<conflictingOrders.size()) {
-					conflict = !conflictingOrders.get(i).isState(OrderState.FINISHED);
-					i++;
-				}
-				if (conflict) {
-					// New name is already being used
-					return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_ACCEPTABLE);
-				}
+			ResponseEntity<Order> result = updateOrder(currentOrder, order, modifiedOrder);
+			if (result != null) {
+				return result;
 			}
 			currentOrder.updateOrder(order);
 			modifiedOrder = orderRepository.save(currentOrder);
@@ -185,6 +172,27 @@ public class BurgerJavisRESTOrder {
 		} catch (Exception e) {
 			return new ResponseEntity<Order>(newOrder, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	private ResponseEntity<Order> updateOrder (Order currentOrder, Order order, Order modifiedOrder) {
+		if(currentOrder.isState(OrderState.SERVED)) {
+			order.updateOrder(currentOrder);
+			order.setState(OrderState.FINISHED);
+		}else if(!order.getName().equalsIgnoreCase(currentOrder.getName())) {
+			// Name has been modified, check if new name is available
+			List<Order> conflictingOrders = orderRepository.findByNameIgnoreCase(order.getName());
+			boolean conflict = false;
+			int i=0;
+			while (!conflict && i<conflictingOrders.size()) {
+				conflict = !conflictingOrders.get(i).isState(OrderState.FINISHED);
+				i++;
+			}
+			if (conflict) {
+				// New name is already being used
+				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_ACCEPTABLE);
+			}
+		}
+		return null;
 	}
 
 }
