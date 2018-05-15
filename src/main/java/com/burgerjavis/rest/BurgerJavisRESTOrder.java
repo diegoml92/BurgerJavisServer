@@ -176,7 +176,7 @@ public class BurgerJavisRESTOrder {
 	
 	private ResponseEntity<Order> updateOrder (Order currentOrder, Order order, Order modifiedOrder) {
 		if(currentOrder.isState(OrderState.SERVED)) {
-			order = currentOrder;
+			order.updateOrder(currentOrder);
 			order.setState(OrderState.FINISHED);
 		}else if(!order.getName().equalsIgnoreCase(currentOrder.getName())) {
 			// Name has been modified, check if new name is available
