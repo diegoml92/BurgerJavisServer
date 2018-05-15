@@ -79,18 +79,9 @@ public class BurgerJavisMVCUser {
 		}
 		// Role modified, check minimum number of admins
 		if(currentUser.isAdmin() && !user.getRole().equalsIgnoreCase(Common.ADMIN_ROLE)) {
-			int admins = 0;
-			for(User lUser : userRepository.findAll()) {
-				if(lUser.isAdmin()) {
-					admins++;
-				}
-			}
-			if (admins <= Common.MIN_ADMINS) {
-				ErrorCause cause = ErrorCause.MIN_ADMINS ;
-				UserWrapper userWrapper = new UserWrapper();
-				userWrapper.wrapInternalType(currentUser);
-				return new ModelAndView("edit_user").addObject("user", userWrapper).
-						addObject("error", new ErrorText(errorText, cause));
+			ModelAndView resultError = returnErrorWhenOnlyOneAdminLeft(currentUser, errorText);
+			if (resultError != null) {
+				return resultError;
 			}
 		}
 		// Check if name is modified
@@ -122,22 +113,30 @@ public class BurgerJavisMVCUser {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		if(currentUser.isAdmin()) {
-			int admins = 0;
-			for(User lUser : userRepository.findAll()) {
-				if(lUser.isAdmin()) {
-					admins++;
-				}
-			}
-			if (admins <= Common.MIN_ADMINS) {
-				ErrorCause cause = ErrorCause.MIN_ADMINS ;
-				UserWrapper userWrapper = new UserWrapper();
-				userWrapper.wrapInternalType(currentUser);
-				return new ModelAndView("edit_user").addObject("user", userWrapper).
-						addObject("error", new ErrorText(errorText, cause));
+			ModelAndView resultError = returnErrorWhenOnlyOneAdminLeft(currentUser, errorText);
+			if (resultError != null) {
+				return resultError;
 			}
 		}
 		userRepository.delete(currentUser);
 		return new ModelAndView("redirect:/");
+	}
+	
+	private ModelAndView returnErrorWhenOnlyOneAdminLeft(User currentUser, String errorText) {
+		int admins = 0;
+		for(User lUser : userRepository.findAll()) {
+			if(lUser.isAdmin()) {
+				admins++;
+			}
+		}
+		if (admins <= Common.MIN_ADMINS) {
+			ErrorCause cause = ErrorCause.MIN_ADMINS ;
+			UserWrapper userWrapper = new UserWrapper();
+			userWrapper.wrapInternalType(currentUser);
+			return new ModelAndView("edit_user").addObject("user", userWrapper).
+					addObject("error", new ErrorText(errorText, cause));
+		}
+		return null;
 	}
 	
 }
