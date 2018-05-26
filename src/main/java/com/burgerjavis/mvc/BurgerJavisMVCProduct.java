@@ -79,11 +79,7 @@ public class BurgerJavisMVCProduct {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		if(!ProductValidator.validateProduct(modProduct)) {
-			ErrorCause cause = ErrorCause.INVALID_DATA;
-			ProductWrapper productWrapper = new ProductWrapper();
-			productWrapper.wrapInternalType(currentProduct);
-			return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
-					addObject("error", new ErrorText(errorText, cause));
+			return generateError(currentProduct, categories, errorText, ErrorCause.INVALID_DATA);
 		}
 		// Check if name is modified
 		ModelAndView result = checkNameModified(currentProduct, modProduct, categories, errorText);
@@ -100,12 +96,8 @@ public class BurgerJavisMVCProduct {
 		final String errorText = "ERROR BORRANDO PRODUCTO";
 		Product currentProduct = productRepository.findOne(id);
 		if(currentProduct == null) {
-			ErrorCause cause = ErrorCause.NOT_FOUND;
-			ProductWrapper productWrapper = new ProductWrapper();
-			productWrapper.wrapInternalType(currentProduct);
 			List<Category> categories = (List<Category>) categoryRepository.findAll();
-			return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
-					addObject("error", new ErrorText(errorText, cause));
+			return generateError(currentProduct, categories, errorText, ErrorCause.NOT_FOUND);
 		}
 		productRepository.delete(currentProduct);
 		return new ModelAndView("redirect:/");
@@ -116,13 +108,16 @@ public class BurgerJavisMVCProduct {
 		if(!modProduct.getName().equalsIgnoreCase(currentProduct.getName())) {
 			// Name has been modified
 			if(productRepository.findByNameIgnoreCase(modProduct.getName()).size() > 0) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				ProductWrapper productWrapper = new ProductWrapper();
-				productWrapper.wrapInternalType(currentProduct);
-				return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
-						addObject("error", new ErrorText(errorText, cause));
+				return generateError(currentProduct, categories, errorText, ErrorCause.NAME_IN_USE);
 			}
 		}
 		return null;
 	}
+	
+	private ModelAndView generateError(Product currentProduct, List<Category >categories, String errorText, ErrorCause cause) {
+		ProductWrapper productWrapper = new ProductWrapper();
+		productWrapper.wrapInternalType(currentProduct);
+		return new ModelAndView("edit_product").addObject("product", productWrapper).addObject("categories", categories).
+				addObject("error", new ErrorText(errorText, cause));
+	} 
 }

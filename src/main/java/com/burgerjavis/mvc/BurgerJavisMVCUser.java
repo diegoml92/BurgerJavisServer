@@ -71,11 +71,7 @@ public class BurgerJavisMVCUser {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		if(!UserValidator.validateUser(modUser)) {
-			ErrorCause cause = ErrorCause.INVALID_DATA;
-			UserWrapper userWrapper = new UserWrapper();
-			userWrapper.wrapInternalType(currentUser);
-			return new ModelAndView("edit_user").addObject("user", userWrapper).
-					addObject("error", new ErrorText(errorText, cause));
+			return generateError(currentUser, errorText, ErrorCause.INVALID_DATA);
 		}
 		// Role modified, check minimum number of admins
 		if(currentUser.isAdmin() && !user.getRole().equalsIgnoreCase(Common.ADMIN_ROLE)) {
@@ -100,11 +96,7 @@ public class BurgerJavisMVCUser {
 		final String errorText = "ERROR BORRANDO USUARIO";
 		User currentUser = userRepository.findOne(id);
 		if(currentUser == null) {
-			ErrorCause cause = ErrorCause.NOT_FOUND;
-			UserWrapper userWrapper = new UserWrapper();
-			userWrapper.wrapInternalType(currentUser);
-			return new ModelAndView("edit_user").addObject("user", userWrapper).
-					addObject("error", new ErrorText(errorText, cause));
+			return generateError(currentUser, errorText, ErrorCause.NOT_FOUND);
 		}
 		if(currentUser.isAdmin()) {
 			ModelAndView resultError = returnErrorWhenOnlyOneAdminLeft(currentUser, errorText);
@@ -124,11 +116,7 @@ public class BurgerJavisMVCUser {
 			}
 		}
 		if (admins <= Common.MIN_ADMINS) {
-			ErrorCause cause = ErrorCause.MIN_ADMINS ;
-			UserWrapper userWrapper = new UserWrapper();
-			userWrapper.wrapInternalType(currentUser);
-			return new ModelAndView("edit_user").addObject("user", userWrapper).
-					addObject("error", new ErrorText(errorText, cause));
+			return generateError(currentUser, errorText, ErrorCause.MIN_ADMINS);
 		}
 		return null;
 	}
@@ -137,14 +125,17 @@ public class BurgerJavisMVCUser {
 		if(!modUser.getUsername().equalsIgnoreCase(currentUser.getUsername())) {
 			// Name has been modified
 			if(userRepository.findByUsernameIgnoreCase(modUser.getUsername()) != null) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				UserWrapper userWrapper = new UserWrapper();
-				userWrapper.wrapInternalType(currentUser);
-				return new ModelAndView("edit_user").addObject("user", userWrapper).
-						addObject("error", new ErrorText(errorText, cause));
+				return generateError(currentUser, errorText, ErrorCause.NAME_IN_USE);
 			}
 		}
 		return null;
+	}
+	
+	private ModelAndView generateError (User currentUser, String errorText, ErrorCause cause) {
+		UserWrapper userWrapper = new UserWrapper();
+		userWrapper.wrapInternalType(currentUser);
+		return new ModelAndView("edit_user").addObject("user", userWrapper).
+				addObject("error", new ErrorText(errorText, cause));
 	}
 	
 }

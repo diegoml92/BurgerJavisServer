@@ -22,9 +22,7 @@ public class SummaryData {
 	private List<List<TopProduct>> topProducts;
 	
 	private Map<String, SummaryData> userSummaryData;
-	
-	private int counter = 0;
-	
+		
 	public SummaryData() {
 		this.completedOrders = 0;
 		this.profits = 0.0f;
@@ -110,14 +108,6 @@ public class SummaryData {
 			this.topProducts.get(this.topCategories.size() - 1)
 				.add(new TopProduct(productName, amount));
 		}
-	}
-	
-	public void resetCounter() {
-		this.counter = 0;
-	}
-	
-	public int getNextCounter() {
-		return this.counter++;
 	}
 	
 	public SummaryData getUserData(String username) {
