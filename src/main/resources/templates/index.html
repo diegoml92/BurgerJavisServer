@@ -84,13 +84,13 @@
                 </div>
               </section>
             </div>
-            <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=${data.resetCounter()}" class="top-products-container">
+            <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=0" class="top-products-container">
               <h1>Productos más vendidos</h1>
               <ul class="list-group">
                 <li class="list-group-item" th:each="category : ${data.getTopCategories()}">
                   <h3 th:text="${category.getName()}"></h3>
                   <ul class="list-group">
-                    <li class="list-group-item" th:each="product : ${data.getTopProducts().get(data.getNextCounter())}">
+                    <li class="list-group-item" th:each="product : ${data.getTopProducts().get(index++)}">
                       <span th:text="${product.getProductName()}"></span>
                       <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
                     </li>
@@ -122,14 +122,14 @@
               </section>
             </div>
             <div th:if="${!data.getUserData(username).getTopCategories().isEmpty()}" 
-            		th:with="index=${data.getUserData(username).resetCounter()}" class="top-products-container">
+            		th:with="index=0" class="top-products-container">
               <h1>Productos más vendidos</h1>
               <ul class="list-group">
                 <li class="list-group-item" th:each="category : ${data.getUserData(username).getTopCategories()}">
                   <h3 th:text="${category.getName()}"></h3>
                   <ul class="list-group">
                     <li class="list-group-item" th:each="product : ${data.getUserData(username).getTopProducts()
-                    		.get(data.getUserData(username).getNextCounter())}">
+                    		.get(index++)}">
                       <span th:text="${product.getProductName()}"></span>
                       <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
                     </li>
