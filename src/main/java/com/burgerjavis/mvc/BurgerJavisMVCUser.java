@@ -66,9 +66,8 @@ public class BurgerJavisMVCUser {
 		final String errorText = "ERROR ACTUALIZANDO USUARIO";
 		User currentUser = userRepository.findOne(id);
 		if(currentUser == null) {
-			ErrorCause cause = ErrorCause.NOT_FOUND;
 			return new ModelAndView("edit_user").addObject("user", user).
-					addObject("error", new ErrorText(errorText, cause));
+					addObject("error", new ErrorText(errorText, ErrorCause.NOT_FOUND));
 		}
 		if(!UserValidator.validateUser(modUser)) {
 			return generateError(currentUser, errorText, ErrorCause.INVALID_DATA);

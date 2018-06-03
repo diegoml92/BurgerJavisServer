@@ -88,17 +88,9 @@ public class BurgerJavisRESTOrder {
 		Order modifiedOrder = null;
 		try {
 			Order currentOrder = orderRepository.findOne(id);
-			if(currentOrder == null) {
-				// Order not found
-				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_FOUND);
-			}
-			if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName()) &&
-					!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
-				// Unauthorized user
-				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
-			}
-			if(!(currentOrder.isState(OrderState.INITIAL) || currentOrder.isState(OrderState.SERVED))) {
-				return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
+			ResponseEntity<Order> validationResult = validateOrder(currentOrder, modifiedOrder, principal);
+			if (validationResult != null) {
+				return validationResult;
 			}
 			if(!OrderValidator.validateOrder(order)) {
 				// Order not valid
@@ -172,6 +164,22 @@ public class BurgerJavisRESTOrder {
 		} catch (Exception e) {
 			return new ResponseEntity<Order>(newOrder, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	private ResponseEntity<Order> validateOrder(Order currentOrder, Order modifiedOrder, Principal principal) {
+		if(currentOrder == null) {
+			// Order not found
+			return new ResponseEntity<Order>(modifiedOrder, HttpStatus.NOT_FOUND);
+		}
+		if(!currentOrder.getUsername().equalsIgnoreCase(principal.getName()) &&
+				!userRepository.findByUsernameIgnoreCase(principal.getName()).isAdmin()) {
+			// Unauthorized user
+			return new ResponseEntity<Order>(modifiedOrder, HttpStatus.UNAUTHORIZED);
+		}
+		if(!(currentOrder.isState(OrderState.INITIAL) || currentOrder.isState(OrderState.SERVED))) {
+			return new ResponseEntity<Order>(modifiedOrder, HttpStatus.FORBIDDEN);
+		}
+		return null;
 	}
 	
 	private ResponseEntity<Order> updateOrder (Order currentOrder, Order order, Order modifiedOrder) {
