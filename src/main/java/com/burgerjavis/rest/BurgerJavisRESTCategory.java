@@ -82,12 +82,9 @@ public class BurgerJavisRESTCategory {
 				}
 			}
 			// Check if name is modified
-			if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
-				// Name has been modified
-				if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
-					// An ingredient with this name already exists
-					return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
-				}
+			ResponseEntity<Category> result = checkNameModified(category, currentCategory, modifiedCategory);
+			if (result != null) {
+				return result;
 			}
 			currentCategory.updateCategory(category);
 			modifiedCategory = categoryRepository.save(currentCategory);
@@ -131,6 +128,17 @@ public class BurgerJavisRESTCategory {
 		} catch (Exception e) {
 			return new ResponseEntity<Category>(newCategory, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	private ResponseEntity<Category> checkNameModified(Category category, Category currentCategory, Category modifiedCategory) {
+		if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
+			// Name has been modified
+			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
+				// An ingredient with this name already exists
+				return new ResponseEntity<Category>(modifiedCategory, HttpStatus.NOT_ACCEPTABLE);
+			}
+		}
+		return null;
 	}
 
 }

@@ -59,30 +59,23 @@ public class BurgerJavisMVCCategory {
 		final String errorText = "ERROR ACTUALIZANDO CATEGORÍA";
 		Category currentCategory = categoryRepository.findOne(id);
 		if(currentCategory == null) {
-			ErrorCause cause = ErrorCause.NOT_FOUND;
 			return new ModelAndView("edit_category").addObject("category", category).
-					addObject("error", new ErrorText(errorText, cause));
+					addObject("error", new ErrorText(errorText, ErrorCause.NOT_FOUND));
 		}
 		if(!CategoryValidator.validateCategory(category) || category.getName().trim().equalsIgnoreCase("")) {
-			ErrorCause cause = ErrorCause.INVALID_DATA;
 			return new ModelAndView("edit_category").addObject("category", currentCategory).
-					addObject("error", new ErrorText(errorText, cause));
+					addObject("error", new ErrorText(errorText, ErrorCause.INVALID_DATA));
 		}
 		if(!currentCategory.isFavorite() && category.isFavorite()) {
 			if(categoryRepository.findByFavoriteTrue().size() >= Common.MAX_FAVORITES) {
-				ErrorCause cause = ErrorCause.MAX_FAVS;
 				return new ModelAndView("edit_category").addObject("category", currentCategory).
-						addObject("error", new ErrorText(errorText, cause));
+						addObject("error", new ErrorText(errorText, ErrorCause.MAX_FAVS));
 			}
 		}
 		// Check if name is modified
-		if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
-			// Name has been modified
-			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				return new ModelAndView("edit_category").addObject("category", currentCategory).
-						addObject("error", new ErrorText(errorText, cause));
-			}
+		ModelAndView result = checkNameModified(category, currentCategory, errorText);
+		if (result != null) {
+			return result;
 		}
 		currentCategory.updateCategory(category);
 		categoryRepository.save(currentCategory);
@@ -100,6 +93,17 @@ public class BurgerJavisMVCCategory {
 		}
 		categoryRepository.delete(currentCategory);
 		return new ModelAndView("redirect:/");
+	}
+	
+	private ModelAndView checkNameModified(Category category, Category currentCategory, String errorText) {
+		if(!category.getName().equalsIgnoreCase(currentCategory.getName())) {
+			// Name has been modified
+			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
+				return new ModelAndView("edit_category").addObject("category", currentCategory).
+						addObject("error", new ErrorText(errorText, ErrorCause.NAME_IN_USE));
+			}
+		}
+		return null;
 	}
 	
 }

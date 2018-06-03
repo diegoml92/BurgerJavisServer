@@ -68,13 +68,9 @@ public class BurgerJavisMVCIngredient {
 					addObject("error", new ErrorText(errorText, cause));
 		}
 		// Check if name is modified
-		if(!ingredient.getName().equalsIgnoreCase(currentIngredient.getName())) {
-			// Name has been modified
-			if(ingredientRepository.findByNameIgnoreCase(ingredient.getName()).size() > 0) {
-				ErrorCause cause = ErrorCause.NAME_IN_USE;
-				return new ModelAndView("edit_ingredient").addObject("ingredient", currentIngredient).
-						addObject("error", new ErrorText(errorText, cause));
-			}
+		ModelAndView result = checkNameModified(ingredient, currentIngredient, errorText);
+		if(result != null) {
+			return result;
 		}
 		currentIngredient.updateIngredient(ingredient);
 		ingredientRepository.save(currentIngredient);
@@ -92,5 +88,17 @@ public class BurgerJavisMVCIngredient {
 		}
 		ingredientRepository.delete(currentIngredient);
 		return new ModelAndView("redirect:/");
+	}
+	
+	private ModelAndView checkNameModified(Ingredient ingredient, Ingredient currentIngredient, String errorText) {
+		if(!ingredient.getName().equalsIgnoreCase(currentIngredient.getName())) {
+			// Name has been modified
+			if(ingredientRepository.findByNameIgnoreCase(ingredient.getName()).size() > 0) {
+				ErrorCause cause = ErrorCause.NAME_IN_USE;
+				return new ModelAndView("edit_ingredient").addObject("ingredient", currentIngredient).
+						addObject("error", new ErrorText(errorText, cause));
+			}
+		}
+		return null;
 	}
 }
