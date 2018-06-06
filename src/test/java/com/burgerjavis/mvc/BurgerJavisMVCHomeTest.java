@@ -80,7 +80,6 @@ public class BurgerJavisMVCHomeTest {
 		driver.findElement(By.linkText("Menú")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='menu']/div/div/a")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
@@ -92,7 +91,6 @@ public class BurgerJavisMVCHomeTest {
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='ingredients']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/ingredient/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Categorías")).click();
@@ -104,7 +102,6 @@ public class BurgerJavisMVCHomeTest {
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='categories']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText("Usuarios")).click();
@@ -116,7 +113,6 @@ public class BurgerJavisMVCHomeTest {
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='users']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		

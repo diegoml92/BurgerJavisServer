@@ -44,7 +44,7 @@ public class BurgerJavisRESTSummary {
 		SummaryData data = null;
 		try {
 			List<Order> orders = orderRepository.findByStateIs(OrderState.FINISHED);
-			List<Category> categories = (List<Category>) categoryRepository.findAll();
+			List<Category> categories = (List<Category>) categoryRepository.findByFavoriteTrue();
 			if (orders.size() > 0) {
 				data = new SummaryData(orders, categories);
 				return new ResponseEntity<SummaryData>(data, HttpStatus.OK);
