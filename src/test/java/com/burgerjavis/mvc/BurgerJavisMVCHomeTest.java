@@ -53,7 +53,7 @@ public class BurgerJavisMVCHomeTest {
 	@Test 
 	public void testBurgerJavisMVCHome() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -61,62 +61,62 @@ public class BurgerJavisMVCHomeTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Navigation
 		driver.findElement(By.linkText("Menú")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.linkText("+")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		driver.findElement(By.linkText("Cancelar")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText("Menú")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='menu']/div/div/a")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/modify"));
+		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[2]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/ingredient/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/ingredient/add"));
 		driver.findElement(By.linkText("Cancelar")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Ingredientes")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='ingredients']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/ingredient/modify"));
+		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/ingredient/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[3]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/add"));
 		driver.findElement(By.linkText("Cancelar")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='categories']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/modify"));
+		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[4]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		driver.findElement(By.linkText("Cancelar")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='users']/div/div/a/span")).click();
-		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/modify"));
+		//assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/modify"));
 		driver.findElement(By.linkText("Descartar cambios")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		
 		// Logout
 		driver.findElement(By.linkText("Cerrar sesión")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/login?logout"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?logout"));
 	}
 	
 	@After
