@@ -34,6 +34,7 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.repositories.CategoryRepository;
+import com.burgerjavis.util.DatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -45,6 +46,9 @@ public class BurgerJavisMVCCategoryTest {
 	@Autowired
 	private CategoryRepository categoryRepository;
 	
+	@Autowired
+	private DatabaseLoader dbLoad;
+	
 	private WebDriver driver;
 	private static ApplicationContext context;
 	private StringBuffer verificationErrors = new StringBuffer();
@@ -55,6 +59,7 @@ public class BurgerJavisMVCCategoryTest {
 
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
@@ -63,7 +68,7 @@ public class BurgerJavisMVCCategoryTest {
 	@Test
 	public void testBurgerJavisMVCCategoryAdd() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -71,31 +76,31 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Create new category
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[3]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Nueva categoria");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertNotNull(categoryRepository.findByNameIgnoreCase("Nueva categoria"));
 		
 		// Category with name being used
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[3]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Nueva categoria");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
 		
 		// Category with empty name
@@ -103,14 +108,14 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys(" ");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/category/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/category/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 	}
 	
 	@Test
 	public void testBurgerJavisMVCCategoryModify() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -118,7 +123,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Modify category name
@@ -129,7 +134,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Hamburguesas2");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertNotNull(categoryRepository.findByNameIgnoreCase("Hamburguesas2"));
 		assertEquals(categoryRepository.findByNameIgnoreCase("Hamburguesas"), new ArrayList<Category>());
 		
@@ -139,7 +144,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.xpath("//div[@id='categories']/div/div/a[2]/span")).click();
 		driver.findElement(By.id("inputFav")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertEquals(categoryRepository.findByFavoriteTrue().size(), 1);
 		
 		// Set category as favorite (2)
@@ -148,7 +153,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.linkText("Ensaladas")).click();
 		driver.findElement(By.id("inputFav")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertEquals(categoryRepository.findByFavoriteTrue().size(), 2);
 		
 		// Set category as favorite (3)
@@ -157,7 +162,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.linkText("Tostas")).click();
 		driver.findElement(By.id("inputFav")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertEquals(categoryRepository.findByFavoriteTrue().size(), 3);
 		
 		// Set category as favorite, MAX_FAVORITES exceeded
@@ -170,7 +175,7 @@ public class BurgerJavisMVCCategoryTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("MAX_FAVS"));
 		
 		// New category name is already in use
-		driver.get("http://localhost:8080");
+		driver.get("http://localhost:12345");
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.linkText("Hamburguesas2")).click();
@@ -181,7 +186,7 @@ public class BurgerJavisMVCCategoryTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
 		
 		// New category name is empty
-		driver.get("http://localhost:8080");
+		driver.get("http://localhost:12345");
 		driver.findElement(By.linkText(" >  Categorías")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.linkText("Hamburguesas2")).click();
@@ -195,7 +200,7 @@ public class BurgerJavisMVCCategoryTest {
 	@Test
 	public void testBurgerJavisMVCCategoryDelete() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -203,7 +208,7 @@ public class BurgerJavisMVCCategoryTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Delete category

@@ -3,12 +3,10 @@
  * Burger Javi's Server
  */
 
-package com.burgerjavis;
+package com.burgerjavis.util;
 
 import java.util.Arrays;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -17,6 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.burgerjavis.Common;
 import com.burgerjavis.Common.OrderState;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.entities.Ingredient;
@@ -47,8 +46,8 @@ public class DatabaseLoader {
 	@Autowired
 	private UserRepository userRepository;
 	
-	@PostConstruct
-	private void initDatabase() {
+	public void initDatabase() {
+		
 		mongoTemplate.getDb().dropDatabase();
 		
 		GrantedAuthority [] roles1 = { new SimpleGrantedAuthority(Common.WAITER_ROLE) };

@@ -36,6 +36,7 @@ import com.burgerjavis.Common;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.UserRepository;
+import com.burgerjavis.util.DatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -47,6 +48,9 @@ public class BurgerJavisMVCUserTest {
 	@Autowired
 	private UserRepository userRepository;
 	
+	@Autowired
+	private DatabaseLoader dbLoad;
+	
 	private WebDriver driver;
 	private static ApplicationContext context;
 	private StringBuffer verificationErrors = new StringBuffer();
@@ -57,6 +61,7 @@ public class BurgerJavisMVCUserTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
@@ -65,7 +70,7 @@ public class BurgerJavisMVCUserTest {
 	@Test
 	public void testBurgerJavisMVCUserAdd() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -73,14 +78,14 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Create new user
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[4]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("NuevoUsuario");
@@ -95,7 +100,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[4]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("NuevoUsuario");
@@ -104,7 +109,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pass");
 		driver.findElement(By.id("role1")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
 		
 		// User with empty name
@@ -116,7 +121,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pass");
 		driver.findElement(By.id("role1")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 		
 		// User with invalid name
@@ -128,7 +133,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pass");
 		driver.findElement(By.id("role1")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 		assertNull(userRepository.findByUsernameIgnoreCase("Nuevo usuario"));
 		
@@ -141,7 +146,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.id("inputPassword")).sendKeys("pas");
 		driver.findElement(By.id("role1")).click();
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 		assertNull(userRepository.findByUsernameIgnoreCase("NuevoUsuario2"));
 	}
@@ -149,7 +154,7 @@ public class BurgerJavisMVCUserTest {
 	@Test
 	public void testBurgerJavisMVCUserModify() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -157,7 +162,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Modify user data
@@ -192,7 +197,7 @@ public class BurgerJavisMVCUserTest {
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("MIN_ADMINS"));
 		
 		// User with empty username
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("//div[@id='users']/div/div/a[2]/span")).click();
@@ -239,7 +244,7 @@ public class BurgerJavisMVCUserTest {
 	@Test
 	public void testBurgerJavisMVCUserDelete() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -247,7 +252,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Delete user
@@ -263,7 +268,7 @@ public class BurgerJavisMVCUserTest {
 		driver.findElement(By.linkText("Usuarios")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.xpath("(//a[contains(text(),'+')])[4]")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/user/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/user/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("user2");

@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +28,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
+import com.burgerjavis.util.DatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -34,6 +36,9 @@ import io.github.bonigarcia.wdm.ChromeDriverManager;
 @SpringBootTest(classes={MongoTestConfiguration.class})
 @WebAppConfiguration
 public class BurgerJavisMVCLoginTest {
+	
+	@Autowired
+	private DatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;
@@ -46,13 +51,14 @@ public class BurgerJavisMVCLoginTest {
 
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 	}
 
 	@Test
 	public void testBurgerJavisMVCLogin() throws Exception {
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio de sesión"));
 		
 		// Admin user
@@ -65,7 +71,7 @@ public class BurgerJavisMVCLoginTest {
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		driver.findElement(By.linkText("Cerrar sesión")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/login?logout"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?logout"));
 		
 		// Existing user without admin permissions
 		driver.findElement(By.name("username")).click();
@@ -75,7 +81,7 @@ public class BurgerJavisMVCLoginTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("pass");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/login?error"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?error"));
 		
 		// Non existing user
 		driver.findElement(By.name("username")).click();
@@ -85,13 +91,13 @@ public class BurgerJavisMVCLoginTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("invalidPassword");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/login?error"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?error"));
 		
 	}
 	
 	@Test
 	public void testBurgerJavisMVCLogin2() throws Exception {
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio de sesión"));
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
@@ -102,7 +108,7 @@ public class BurgerJavisMVCLoginTest {
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		driver.findElement(By.linkText("Cerrar sesión")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/login?logout"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?logout"));
 	}
 
 	@After

@@ -33,6 +33,7 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Product;
 import com.burgerjavis.repositories.ProductRepository;
+import com.burgerjavis.util.DatabaseLoader;
 import com.burgerjavis.util.UnitTestUtil;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
@@ -45,6 +46,9 @@ public class BurgerJavisMVCProductTest {
 	@Autowired
 	private ProductRepository productRepository;
 	
+	@Autowired
+	private DatabaseLoader dbLoad;
+	
 	private WebDriver driver;
 	private static ApplicationContext context;
 	private StringBuffer verificationErrors = new StringBuffer();
@@ -55,6 +59,7 @@ public class BurgerJavisMVCProductTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
@@ -63,7 +68,7 @@ public class BurgerJavisMVCProductTest {
 	@Test
 	public void testBurgerJavisMVCProductAdd() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -71,14 +76,14 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Add new product
 		driver.findElement(By.linkText("Menú")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.linkText("+")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Nuevo producto");
@@ -97,7 +102,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.linkText("Menú")).click();
 		TimeUnit.SECONDS.sleep(1);
 		driver.findElement(By.linkText("+")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		driver.findElement(By.id("inputName")).click();
 		driver.findElement(By.id("inputName")).clear();
 		driver.findElement(By.id("inputName")).sendKeys("Nuevo producto");
@@ -105,7 +110,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.id("inputPrice")).clear();
 		driver.findElement(By.id("inputPrice")).sendKeys("3.50");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("NAME_IN_USE"));
 		
 		// Product with empty name
@@ -116,7 +121,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.id("inputPrice")).clear();
 		driver.findElement(By.id("inputPrice")).sendKeys("3.50");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 		
 		// Product with invalid name
@@ -127,7 +132,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.id("inputPrice")).clear();
 		driver.findElement(By.id("inputPrice")).sendKeys("3.50");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 		
 		// Product with invalid price
@@ -138,14 +143,14 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.id("inputPrice")).clear();
 		driver.findElement(By.id("inputPrice")).sendKeys("-3.50");
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/webclient/product/add"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/product/add"));
 		assertTrue(driver.findElement(By.xpath("//div/span")).getText().equalsIgnoreCase("INVALID_DATA"));
 	}
 	
 	@Test
 	public void testBurgerJavisMVCProductModify() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/");
+		driver.get("http://localhost:12345/");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -153,7 +158,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Modify product
@@ -223,7 +228,7 @@ public class BurgerJavisMVCProductTest {
 	@Test
 	public void testBurgerJavisMVCProductDelete() throws Exception {
 		// Login
-		driver.get("http://localhost:8080/webclient/login");
+		driver.get("http://localhost:12345/webclient/login");
 		driver.findElement(By.name("username")).click();
 		driver.findElement(By.name("username")).clear();
 		driver.findElement(By.name("username")).sendKeys("admin");
@@ -231,7 +236,7 @@ public class BurgerJavisMVCProductTest {
 		driver.findElement(By.name("password")).clear();
 		driver.findElement(By.name("password")).sendKeys("admin");
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
-		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:8080/"));
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/"));
 		assertTrue(driver.getTitle().equalsIgnoreCase("Burger Javi's - Inicio"));
 		
 		// Delete product

@@ -51,7 +51,6 @@
 		  <div class="col-sm-10">
 		    <input type="text" class="form-control" id="inputName" th:value="${user.getUsername()}" 
 		    		th:required="required" th:field="*{username}"/>
-		    <div class="invalid-feedback">Por favor, introduzca un nombre válido.</div>
 		  </div>
 		</div>
 		<div class="form-group row">
@@ -59,7 +58,6 @@
 		  <div class="col-sm-10">
 		    <input type="password" class="form-control" id="inputPassword"
 		    	th:field="*{password}" th:required="required"/>
-		    <div class="invalid-feedback">Por favor, introduzca un valor válido.</div>
 		  </div>
 		</div>
 		<fieldset class="form-group">
@@ -91,11 +89,11 @@
 		  </div>
 		</fieldset>
 		<button type="submit" class="btn btn-primary">Guardar cambios</button>
-		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
+		<a class="btn btn-dark" th:href="@{/}">Descartar cambios</a>
 	  </form>
 	  <form th:if="${user != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto"
 	  	th:action="@{/webclient/user/delete(id=${user.getId()})}" th:method="delete">
-	  	<button type="submit" class="btn btn-dark float-right">Borrar</button>
+	  	<button type="submit" class="btn btn-danger float-right">Borrar</button>
       </form>
     </div>
 
