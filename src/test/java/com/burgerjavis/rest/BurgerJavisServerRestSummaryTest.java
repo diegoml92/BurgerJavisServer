@@ -128,10 +128,10 @@ public class BurgerJavisServerRestSummaryTest {
 		Ingredient i10 = ingredientRepository.save(new Ingredient("Atun"));
 		Ingredient i11 = ingredientRepository.save(new Ingredient("Tomate"));
 				
-		Category c0 = categoryRepository.save(new Category("Bebida"));
+		Category c0 = categoryRepository.save(new Category("Bebida", true));
 		Category c1 = categoryRepository.save(new Category("Hamburguesas"));
 		Category c2 = categoryRepository.save(new Category("Cafe/Te/Infusiones"));
-		Category c3 = categoryRepository.save(new Category("Ensaladas"));
+		Category c3 = categoryRepository.save(new Category("Ensaladas", true));
 		Category c4 = categoryRepository.save(new Category("Tostas"));
 				
 		Product p0 = productRepository.save(new Product("Hamburguesa", 4.50f, c1, Arrays.asList(i0, i1, i2, i3, i4, i5)));
@@ -200,12 +200,10 @@ public class BurgerJavisServerRestSummaryTest {
 			.andExpect(content().contentType(UnitTestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.profits", closeTo(62.65, UnitTestUtil.DELTA_ERROR)))
 			.andExpect(jsonPath("$.completedOrders", is(2)))
-			.andExpect(jsonPath("$.topCategories", hasSize(5)))
+			.andExpect(jsonPath("$.topCategories", hasSize(3)))
 			.andExpect(jsonPath("$.topProducts[0]", hasSize(2)))
 			.andExpect(jsonPath("$.topProducts[1]", hasSize(1)))
-			.andExpect(jsonPath("$.topProducts[2]", hasSize(1)))
-			.andExpect(jsonPath("$.topProducts[3]", hasSize(1)))
-			.andExpect(jsonPath("$.topProducts[4]", hasSize(2)));
+			.andExpect(jsonPath("$.topProducts[2]", hasSize(4)));
 		
 	}
 	

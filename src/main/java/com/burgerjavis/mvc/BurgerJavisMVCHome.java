@@ -44,8 +44,8 @@ public class BurgerJavisMVCHome {
 	public ModelAndView loginPage() {
 		SummaryData data;
 		List<Order> orders = orderRepository.findByStateIs(OrderState.FINISHED);
-		List<Category> categories = (List<Category>) categoryRepository.findAll();
-		data = orders.size() > 0 ? new SummaryData(orders, categories) : new SummaryData();
+		List<Category> favCategories = (List<Category>) categoryRepository.findByFavoriteTrue();
+		data = orders.size() > 0 ? new SummaryData(orders, favCategories) : new SummaryData();
 		List<User> allUsers  = (List<User>) userRepository.findAll();
 		List<User> users = new ArrayList<User>();
 		for (User user : allUsers) {
@@ -53,8 +53,9 @@ public class BurgerJavisMVCHome {
 				users.add(user);
 			}
 		}
-		setUserData(users, categories, data);
+		setUserData(users, favCategories, data);
 		List<Product> menu = (List<Product>) productRepository.findAll();
+		List<Category> categories = (List<Category>) categoryRepository.findAll();
 		List<Ingredient> ingredients = (List<Ingredient>) ingredientRepository.findAll();
 		return new ModelAndView("index").addObject("users", allUsers).addObject("data", data).addObject("categories", categories).
 				addObject("menu", menu).addObject("ingredients", ingredients);
