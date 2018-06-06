@@ -51,15 +51,14 @@
 		  <div class="col-sm-10">
 		    <input type="text" class="form-control" id="inputName" th:value="${ingredient.getName()}" 
 		    		th:required="required" th:field="*{name}"/>
-		    <div class="invalid-feedback">Por favor, introduzca un nombre válido.</div>
 		  </div>
 		</div>
 		<button type="submit" class="btn btn-primary">Guardar cambios</button>
-		<a class="btn btn-danger" th:href="@{/}">Descartar cambios</a>
+		<a class="btn btn-dark" th:href="@{/}">Descartar cambios</a>
 	  </form>
 	  <form th:if="${ingredient != null}" class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 mx-auto"
 	  	th:action="@{/webclient/ingredient/delete(id=${ingredient.get_id()})}" th:method="delete">
-	  	<button type="submit" class="btn btn-dark float-right">Borrar</button>
+	  	<button type="submit" class="btn btn-danger float-right">Borrar</button>
       </form>
     </div>
 
