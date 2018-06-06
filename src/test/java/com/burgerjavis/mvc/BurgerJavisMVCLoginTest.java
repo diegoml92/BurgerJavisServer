@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
@@ -27,6 +28,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
+import com.burgerjavis.util.DatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -34,6 +36,9 @@ import io.github.bonigarcia.wdm.ChromeDriverManager;
 @SpringBootTest(classes={MongoTestConfiguration.class})
 @WebAppConfiguration
 public class BurgerJavisMVCLoginTest {
+	
+	@Autowired
+	private DatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;
@@ -46,6 +51,7 @@ public class BurgerJavisMVCLoginTest {
 
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 	}

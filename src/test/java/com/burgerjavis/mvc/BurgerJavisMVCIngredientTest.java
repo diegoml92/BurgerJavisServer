@@ -33,6 +33,7 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Ingredient;
 import com.burgerjavis.repositories.IngredientRepository;
+import com.burgerjavis.util.DatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -44,6 +45,9 @@ public class BurgerJavisMVCIngredientTest {
 	@Autowired
 	private IngredientRepository ingredientRepository;
 	
+	@Autowired
+	private DatabaseLoader dbLoad;
+	
 	private WebDriver driver;
 	private static ApplicationContext context;
 	private StringBuffer verificationErrors = new StringBuffer();
@@ -54,6 +58,7 @@ public class BurgerJavisMVCIngredientTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		dbLoad.initDatabase();
 		driver = new ChromeDriver();
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		context = (ApplicationContext) SpringApplication.run(BurgerJavisServerApplication.class);
