@@ -42,17 +42,11 @@ public class BurgerJavisMVCHome {
 	
 	@RequestMapping ({"/", "/webclient/home"})
 	public ModelAndView loginPage() {
-		SummaryData data;
 		List<Order> orders = orderRepository.findByStateIs(OrderState.FINISHED);
 		List<Category> favCategories = (List<Category>) categoryRepository.findByFavoriteTrue();
-		data = orders.size() > 0 ? new SummaryData(orders, favCategories) : new SummaryData();
+		SummaryData data = orders.size() > 0 ? new SummaryData(orders, favCategories) : new SummaryData();
 		List<User> allUsers  = (List<User>) userRepository.findAll();
-		List<User> users = new ArrayList<User>();
-		for (User user : allUsers) {
-			if (user.hasWaiterRole()) {
-				users.add(user);
-			}
-		}
+		List<User> users = getWaiters(allUsers);
 		setUserData(users, favCategories, data);
 		List<Product> menu = (List<Product>) productRepository.findAll();
 		List<Category> categories = (List<Category>) categoryRepository.findAll();
@@ -68,6 +62,16 @@ public class BurgerJavisMVCHome {
 			userData = userOrders.size() > 0 ? new SummaryData(userOrders, categories) : new SummaryData();
 			data.setUserData(user.getUsername(), userData);
 		}
+	}
+	
+	private List<User> getWaiters(List<User> allUsers) {
+		List<User> users = new ArrayList<User>();
+		for (User user : allUsers) {
+			if (user.hasWaiterRole()) {
+				users.add(user);
+			}
+		}
+		return users;
 	}
 
 }
