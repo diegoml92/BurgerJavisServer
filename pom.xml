@@ -45,41 +45,41 @@
 		</dependency>
 		
 		<dependency>
-	      	<groupId>org.springframework.boot</groupId>
-	      	<artifactId>spring-boot-starter-security</artifactId>
-	    </dependency>
-	    
-	    <dependency>
-		    <groupId>org.springframework.security</groupId>
-		    <artifactId>spring-security-test</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		
 		<dependency>
-		    <groupId>com.google.code.gson</groupId>
-		    <artifactId>gson</artifactId>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
 		</dependency>
 		
 		<dependency>
-	    	<groupId>org.webjars</groupId>
-	    	<artifactId>bootstrap</artifactId>
-	    	<version>4.0.0-beta-1</version>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
 		</dependency>
 		
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>jquery</artifactId>
-		    <version>3.2.1</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>4.0.0-beta-1</version>
 		</dependency>
 		
 		<dependency>
-		    <groupId>org.webjars.bower</groupId>
-		    <artifactId>popper.js</artifactId>
-		    <version>1.12.5</version>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>3.2.1</version>
 		</dependency>
 		
 		<dependency>
-		    <groupId>org.seleniumhq.selenium</groupId>
-		    <artifactId>selenium-java</artifactId>
+			<groupId>org.webjars.bower</groupId>
+			<artifactId>popper.js</artifactId>
+			<version>1.12.5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -97,6 +97,20 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<formats>
+						<format>html</format>
+						<format>xml</format>
+					</formats>
+					<check />
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
