@@ -73,11 +73,9 @@ public class BurgerJavisMVCUser {
 			return generateError(currentUser, errorText, ErrorCause.INVALID_DATA);
 		}
 		// Role modified, check minimum number of admins
-		if(currentUser.isAdmin() && !user.getRole().equalsIgnoreCase(Common.ADMIN_ROLE)) {
-			ModelAndView resultError = returnErrorWhenOnlyOneAdminLeft(currentUser, errorText);
-			if (resultError != null) {
-				return resultError;
-			}
+		ModelAndView resultError = checkNumberOfAdmins(currentUser, user, errorText);
+		if (resultError != null) {
+			return resultError;
 		}
 		// Check if name is modified
 		ModelAndView resultName = checkNameModified(currentUser, modUser, errorText);
@@ -135,6 +133,16 @@ public class BurgerJavisMVCUser {
 		userWrapper.wrapInternalType(currentUser);
 		return new ModelAndView("edit_user").addObject("user", userWrapper).
 				addObject("error", new ErrorText(errorText, cause));
+	}
+	
+	private ModelAndView checkNumberOfAdmins (User currentUser, UserWrapper user, String errorText) {
+		if(currentUser.isAdmin() && !user.getRole().equalsIgnoreCase(Common.ADMIN_ROLE)) {
+			ModelAndView resultError = returnErrorWhenOnlyOneAdminLeft(currentUser, errorText);
+			if (resultError != null) {
+				return resultError;
+			}
+		}
+		return null;
 	}
 	
 }

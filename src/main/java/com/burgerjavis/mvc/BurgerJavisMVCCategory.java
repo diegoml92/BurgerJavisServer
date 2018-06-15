@@ -58,19 +58,13 @@ public class BurgerJavisMVCCategory {
 	public ModelAndView modifyCategory (String id, Category category) {
 		final String errorText = "ERROR ACTUALIZANDO CATEGORÍA";
 		Category currentCategory = categoryRepository.findOne(id);
-		if(currentCategory == null) {
-			return new ModelAndView("edit_category").addObject("category", category).
-					addObject("error", new ErrorText(errorText, ErrorCause.NOT_FOUND));
+		ModelAndView validationResult = categoryValidation(currentCategory, category, errorText);
+		if(validationResult != null) {
+			return validationResult;
 		}
 		if(!CategoryValidator.validateCategory(category) || category.getName().trim().equalsIgnoreCase("")) {
 			return new ModelAndView("edit_category").addObject("category", currentCategory).
 					addObject("error", new ErrorText(errorText, ErrorCause.INVALID_DATA));
-		}
-		if(!currentCategory.isFavorite() && category.isFavorite()) {
-			if(categoryRepository.findByFavoriteTrue().size() >= Common.MAX_FAVORITES) {
-				return new ModelAndView("edit_category").addObject("category", currentCategory).
-						addObject("error", new ErrorText(errorText, ErrorCause.MAX_FAVS));
-			}
 		}
 		// Check if name is modified
 		ModelAndView result = checkNameModified(category, currentCategory, errorText);
@@ -101,6 +95,20 @@ public class BurgerJavisMVCCategory {
 			if(categoryRepository.findByNameIgnoreCase(category.getName()).size() > 0) {
 				return new ModelAndView("edit_category").addObject("category", currentCategory).
 						addObject("error", new ErrorText(errorText, ErrorCause.NAME_IN_USE));
+			}
+		}
+		return null;
+	}
+	
+	private ModelAndView categoryValidation(Category currentCategory, Category category, String errorText) {
+		if(currentCategory == null) {
+			return new ModelAndView("edit_category").addObject("category", category).
+					addObject("error", new ErrorText(errorText, ErrorCause.NOT_FOUND));
+		}
+		if(!currentCategory.isFavorite() && category.isFavorite()) {
+			if(categoryRepository.findByFavoriteTrue().size() >= Common.MAX_FAVORITES) {
+				return new ModelAndView("edit_category").addObject("category", currentCategory).
+						addObject("error", new ErrorText(errorText, ErrorCause.MAX_FAVS));
 			}
 		}
 		return null;
