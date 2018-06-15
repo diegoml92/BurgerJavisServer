@@ -84,13 +84,13 @@
                 </div>
               </section>
             </div>
-            <div th:if="${!data.getTopCategories().isEmpty()}" th:with="index=0" class="top-products-container">
+            <div th:if="${!data.getTopCategories().isEmpty()}" class="top-products-container">
               <h1>Productos más vendidos</h1>
               <ul class="list-group">
-                <li class="list-group-item" th:each="category : ${data.getTopCategories()}">
+                <li class="list-group-item" th:each="category, iter : ${data.getTopCategories()}">
                   <h3 th:text="${category.getName()}"></h3>
                   <ul class="list-group">
-                    <li class="list-group-item" th:each="product : ${data.getTopProducts().get(index++)}">
+                    <li class="list-group-item" th:each="product : ${data.getTopProducts().get(iter.index)}">
                       <span th:text="${product.getProductName()}"></span>
                       <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
                     </li>
@@ -121,15 +121,14 @@
                 </div>
               </section>
             </div>
-            <div th:if="${!data.getUserData(username).getTopCategories().isEmpty()}" 
-            		th:with="index=0" class="top-products-container">
+            <div th:if="${!data.getUserData(username).getTopCategories().isEmpty()}" class="top-products-container">
               <h1>Productos más vendidos</h1>
               <ul class="list-group">
-                <li class="list-group-item" th:each="category : ${data.getUserData(username).getTopCategories()}">
+                <li class="list-group-item" th:each="category,iter : ${data.getUserData(username).getTopCategories()}">
                   <h3 th:text="${category.getName()}"></h3>
                   <ul class="list-group">
                     <li class="list-group-item" th:each="product : ${data.getUserData(username).getTopProducts()
-                    		.get(index++)}">
+                    		.get(iter.index)}">
                       <span th:text="${product.getProductName()}"></span>
                       <span class="badge badge-primary badge-pill float-right" th:text="${product.getAmount()}"></span>
                     </li>
