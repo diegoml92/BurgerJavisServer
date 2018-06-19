@@ -33,7 +33,7 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Product;
 import com.burgerjavis.repositories.ProductRepository;
-import com.burgerjavis.util.DatabaseLoader;
+import com.burgerjavis.util.TestDatabaseLoader;
 import com.burgerjavis.util.UnitTestUtil;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
@@ -47,7 +47,7 @@ public class BurgerJavisMVCProductTest {
 	private ProductRepository productRepository;
 	
 	@Autowired
-	private DatabaseLoader dbLoad;
+	private TestDatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;

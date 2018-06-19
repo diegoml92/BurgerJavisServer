@@ -36,7 +36,7 @@ import com.burgerjavis.Common;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.User;
 import com.burgerjavis.repositories.UserRepository;
-import com.burgerjavis.util.DatabaseLoader;
+import com.burgerjavis.util.TestDatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -49,7 +49,7 @@ public class BurgerJavisMVCUserTest {
 	private UserRepository userRepository;
 	
 	@Autowired
-	private DatabaseLoader dbLoad;
+	private TestDatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;

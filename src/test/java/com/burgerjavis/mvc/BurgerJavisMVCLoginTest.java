@@ -28,7 +28,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
-import com.burgerjavis.util.DatabaseLoader;
+import com.burgerjavis.util.TestDatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -38,7 +38,7 @@ import io.github.bonigarcia.wdm.ChromeDriverManager;
 public class BurgerJavisMVCLoginTest {
 	
 	@Autowired
-	private DatabaseLoader dbLoad;
+	private TestDatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;
