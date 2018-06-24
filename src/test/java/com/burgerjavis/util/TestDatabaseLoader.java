@@ -30,7 +30,7 @@ import com.burgerjavis.repositories.ProductRepository;
 import com.burgerjavis.repositories.UserRepository;
 
 @Component
-public class DatabaseLoader {
+public class TestDatabaseLoader {
 	
 	// REQUIRED REPOSITORIES
 	@Autowired

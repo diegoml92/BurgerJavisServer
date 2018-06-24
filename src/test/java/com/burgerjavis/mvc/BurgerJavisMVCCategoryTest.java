@@ -34,7 +34,7 @@ import com.burgerjavis.BurgerJavisServerApplication;
 import com.burgerjavis.MongoTestConfiguration;
 import com.burgerjavis.entities.Category;
 import com.burgerjavis.repositories.CategoryRepository;
-import com.burgerjavis.util.DatabaseLoader;
+import com.burgerjavis.util.TestDatabaseLoader;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 
@@ -47,7 +47,7 @@ public class BurgerJavisMVCCategoryTest {
 	private CategoryRepository categoryRepository;
 	
 	@Autowired
-	private DatabaseLoader dbLoad;
+	private TestDatabaseLoader dbLoad;
 	
 	private WebDriver driver;
 	private static ApplicationContext context;
