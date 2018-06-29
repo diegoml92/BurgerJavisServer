@@ -62,9 +62,5 @@ public class Category {
 	public void setFavorite(boolean favorite) {
 		this.favorite = favorite;
 	}
-	
-	public String toString () {
-		return this.name + " " + this.favorite;
-	}
 
 }

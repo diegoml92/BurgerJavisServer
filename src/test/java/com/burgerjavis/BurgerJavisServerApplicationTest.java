@@ -44,9 +44,10 @@ public class BurgerJavisServerApplicationTest {
 		// Just for coverage purposes
 		@SuppressWarnings("unused")
 		IngredientValidator ingredientValidator = new IngredientValidator();
-		
 		@SuppressWarnings("unused")
 		ValidationPatterns validationPatterns = new ValidationPatterns();
+		@SuppressWarnings("unused")
+		Common common = new Common();
 		
 		Ingredient ingredient1 = new Ingredient();				// Empty ingredient
 		Ingredient ingredient2 = new Ingredient("");			// Empty name

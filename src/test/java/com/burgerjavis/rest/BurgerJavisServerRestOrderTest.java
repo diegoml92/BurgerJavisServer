@@ -528,6 +528,14 @@ public class BurgerJavisServerRestOrderTest {
 			.andExpect(jsonPath("$.items", hasSize(order6.getItems().size())))
 			.andExpect(jsonPath("$.state", is(order6.getState().name())))
 			.andExpect(jsonPath("$.username",  is(order6.getUsername())));
+		
+		// The order username is different from the requesting user
+		Order order7 = new Order("Order 7", "NotCurrentUsername");
+		mockMvc.perform(post("/appclient/orders/")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(order7))
+					.with(httpBasicHeader))
+			.andExpect(status().isNotAcceptable());
 
 	}
 

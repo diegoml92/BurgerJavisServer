@@ -283,6 +283,15 @@ public class BurgerJavisServerRestCategoryTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotAcceptable());
 		
+		modifiedCategory3.setName(" ");
+		
+		// The new name is empty
+		mockMvc.perform(put("/appclient/categories/" + c3.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedCategory3))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isNotAcceptable());
+		
 		// Obtain category list and check categories are correctly modified
 		mockMvc.perform(get("/appclient/categories").with(httpBasicHeaderAdmin))
 			.andExpect(status().isOk())
@@ -408,6 +417,14 @@ public class BurgerJavisServerRestCategoryTest {
 		
 		// A category with this name already exists
 		Category c3 = new Category("burgers", false);
+		mockMvc.perform(post("/appclient/categories")
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(c3))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isNotAcceptable());
+		
+		// The category name is empty
+		c3.setName("");
 		mockMvc.perform(post("/appclient/categories")
 				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
 				.content(UnitTestUtil.convertObjectToJson(c3))
