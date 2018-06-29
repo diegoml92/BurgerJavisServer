@@ -21,16 +21,8 @@ public class ErrorText {
 		return mainText;
 	}
 
-	public void setMainText(String mainText) {
-		this.mainText = mainText;
-	}
-
 	public ErrorCause getCauseText() {
 		return causeText;
-	}
-
-	public void setCauseText(ErrorCause causeText) {
-		this.causeText = causeText;
 	}
 
 		

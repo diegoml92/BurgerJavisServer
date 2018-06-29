@@ -93,6 +93,16 @@ public class BurgerJavisMVCLoginTest {
 		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
 		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?error"));
 		
+		// Invalid password
+		driver.findElement(By.name("username")).click();
+		driver.findElement(By.name("username")).clear();
+		driver.findElement(By.name("username")).sendKeys("admin");
+		driver.findElement(By.name("password")).click();
+		driver.findElement(By.name("password")).clear();
+		driver.findElement(By.name("password")).sendKeys("invalidPassword");
+		driver.findElement(By.xpath("//input[@value='Iniciar sesión']")).click();
+		assertTrue(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:12345/webclient/login?error"));
+		
 	}
 	
 	@Test

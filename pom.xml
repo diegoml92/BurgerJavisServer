@@ -103,7 +103,9 @@
 				<artifactId>cobertura-maven-plugin</artifactId>
 				<version>2.7</version>
 				<configuration>
-					<quiet>true</quiet>
+					<excludes>
+						<exclude>com/burgerjavis/BurgerJavisServerApplication.java</exclude>
+					</excludes>
 					<formats>
 						<format>html</format>
 						<format>xml</format>
