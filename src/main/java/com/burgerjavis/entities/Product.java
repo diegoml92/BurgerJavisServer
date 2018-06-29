@@ -97,19 +97,5 @@ public class Product {
 	public void setIngredients(List<Ingredient> ingredients) {
 		this.ingredients = ingredients;
 	}
-
-	@Override
-	public String toString() {
-		String result = this.name + " " + this.price + "[" + this.category.toString() + "]\n";
-		if (!this.ingredients.isEmpty()) {
-			for (Ingredient ing : this.ingredients) {
-				result += "\t" + ing.toString();
-			}
-		} else {
-			result += "No hay ingredientes";
-		}
-		return result;
-	}
-	
 	
 }

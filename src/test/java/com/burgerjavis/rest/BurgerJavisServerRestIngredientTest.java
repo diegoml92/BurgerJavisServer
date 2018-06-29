@@ -264,6 +264,15 @@ public class BurgerJavisServerRestIngredientTest {
 					.with(httpBasicHeaderAdmin))
 			.andExpect(status().isNotAcceptable());
 		
+		modifiedIngredient3.setName(" ");
+		
+		// The new name is empty, should be rejected
+		mockMvc.perform(put("/appclient/ingredients/" + i3.get_id())
+				.contentType(UnitTestUtil.APPLICATION_JSON_UTF8)
+				.content(UnitTestUtil.convertObjectToJson(modifiedIngredient3))
+					.with(httpBasicHeaderAdmin))
+			.andExpect(status().isNotAcceptable());
+		
 		// Obtain ingredient list and check ingredients are correctly modified
 		mockMvc.perform(get("/appclient/ingredients").with(httpBasicHeaderAdmin))
 			.andExpect(status().isOk())

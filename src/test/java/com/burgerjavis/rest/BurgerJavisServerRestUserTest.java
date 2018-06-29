@@ -98,6 +98,11 @@ public class BurgerJavisServerRestUserTest {
 		
 		RequestPostProcessor httpBasicHeader = httpBasic(u1.getUsername(), PASSWORD);
 		RequestPostProcessor httpBasicHeaderAdmin = httpBasic(u4.getUsername(), PASSWORD);
+		RequestPostProcessor httpBasicHeaderNotExists = httpBasic("NonExistingUser", PASSWORD);
+		
+		// This user does not exist
+		mockMvc.perform(get("/appclient/users/username").with(httpBasicHeaderNotExists))
+			.andExpect(status().isUnauthorized());
 		
 		// This user is not admin
 		mockMvc.perform(get("/appclient/users/username").with(httpBasicHeader))
