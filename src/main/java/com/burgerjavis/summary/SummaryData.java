@@ -123,17 +123,10 @@ public class SummaryData {
 		return profits;
 	}
 
-	public void setProfits(float profits) {
-		this.profits = profits;
-	}
-
 	public int getCompletedOrders() {
 		return completedOrders;
 	}
 
-	public void setCompletedOrders(int completedOrders) {
-		this.completedOrders = completedOrders;
-	}
 
 	public List<Category> getTopCategories() {
 		return topCategories;
